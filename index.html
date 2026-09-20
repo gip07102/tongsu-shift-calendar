@@ -207,33 +207,176 @@
     12:{'2026-09-20':'비','2026-09-21':'당','2026-09-22':'휴','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'}
   };
 
-  // 2026년 관공서 공휴일/명절 표시 레이어.
-  // 근무 기본값이 '일'인 경우 공휴일이면 '비'로 표시한다. 당/휴는 유지한다.
-  const HOLIDAYS = {
-    '2026-01-01':{label:'신정',name:'1월 1일'},
-    '2026-02-16':{label:'설연휴',name:'설날 연휴'},
-    '2026-02-17':{label:'설날',name:'설날'},
-    '2026-02-18':{label:'설연휴',name:'설날 연휴'},
-    '2026-03-01':{label:'3·1절',name:'3·1절'},
-    '2026-03-02':{label:'대체휴일',name:'3·1절 대체공휴일'},
-    '2026-05-01':{label:'노동절',name:'노동절'},
-    '2026-05-05':{label:'어린이날',name:'어린이날'},
-    '2026-05-24':{label:'부처님오신날',name:'부처님오신날'},
-    '2026-05-25':{label:'대체휴일',name:'부처님오신날 대체공휴일'},
-    '2026-06-03':{label:'선거일',name:'전국동시지방선거일'},
-    '2026-06-06':{label:'현충일',name:'현충일'},
-    '2026-07-17':{label:'제헌절',name:'제헌절'},
-    '2026-08-15':{label:'광복절',name:'광복절'},
-    '2026-08-17':{label:'대체휴일',name:'광복절 대체공휴일'},
-    '2026-09-24':{label:'연휴',name:'추석 연휴'},
-    '2026-09-25':{label:'추석',name:'추석'},
-    '2026-09-26':{label:'연휴',name:'추석 연휴'},
-    '2026-10-03':{label:'개천절',name:'개천절'},
-    '2026-10-05':{label:'대체휴일',name:'개천절 대체공휴일'},
-    '2026-10-09':{label:'한글날',name:'한글날'},
-    '2026-12-25':{label:'성탄절',name:'기독탄신일'}
+  // 공휴일 엔진 R2 — 2026년 이후 현행 관공서 공휴일 규칙을 연도별 자동 생성.
+  // 고정일 + 음력 명절 + 대체공휴일을 계산하고, 수시 지정 공휴일만 별도 override로 둔다.
+  const SPECIAL_HOLIDAYS = {
+    '2026-06-03':{label:'선거일',name:'전국동시지방선거일'}
   };
 
+  const HOLIDAY_CACHE = new Map();
+  const HOLIDAY_DAY_MS = 86400000;
+  const LUNAR_FORMATTER = (()=>{
+    try{
+      return new Intl.DateTimeFormat('en-u-ca-chinese',{
+        year:'numeric',month:'numeric',day:'numeric',timeZone:'Asia/Seoul'
+      });
+    }catch(_){
+      return null;
+    }
+  })();
+
+  function holidayDateKeyFromUtcMs(ms){
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+  }
+
+  function holidayAddDays(key,days){
+    const [y,m,d] = key.split('-').map(Number);
+    return holidayDateKeyFromUtcMs(Date.UTC(y,m-1,d) + days * HOLIDAY_DAY_MS);
+  }
+
+  function holidayWeekday(key){
+    const [y,m,d] = key.split('-').map(Number);
+    return new Date(Date.UTC(y,m-1,d)).getUTCDay();
+  }
+
+  function lunarPartsForSolar(y,m,d){
+    if (!LUNAR_FORMATTER) return null;
+    const probe = new Date(Date.UTC(y,m,d,3)); // 정오(KST) 부근으로 날짜 경계 회피
+    const parts = LUNAR_FORMATTER.formatToParts(probe);
+    const get = type => parts.find(p=>p.type===type)?.value ?? '';
+    return {month:get('month'),day:Number(get('day')),year:Number(get('relatedYear') || get('year'))};
+  }
+
+  function findSolarForLunar(gregorianYear,lunarMonth,lunarDay,startMonth,endMonth){
+    const start = Date.UTC(gregorianYear,startMonth-1,1);
+    const end = Date.UTC(gregorianYear,endMonth,0);
+    for(let ms=start; ms<=end; ms+=HOLIDAY_DAY_MS){
+      const d = new Date(ms);
+      const lp = lunarPartsForSolar(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+      if (!lp) break;
+      // leap month는 month 값이 '4bis'처럼 나오므로 정확히 숫자 문자열인 경우만 채택.
+      if (lp.year===gregorianYear && lp.month===String(lunarMonth) && lp.day===lunarDay){
+        return holidayDateKeyFromUtcMs(ms);
+      }
+    }
+    return null;
+  }
+
+  function mergeHolidayDisplay(map,key,label,name){
+    const prev = map.get(key);
+    if (!prev){
+      map.set(key,{label,name});
+      return;
+    }
+    const names = new Set(String(prev.name).split(' · ').concat([name]));
+    prev.name = Array.from(names).join(' · ');
+    if (!prev.label) prev.label = label;
+  }
+
+  function generateHolidayYear(year){
+    if (HOLIDAY_CACHE.has(year)) return HOLIDAY_CACHE.get(year);
+    const display = new Map();
+    HOLIDAY_CACHE.set(year,display);
+
+    // 이 근무표의 운용 기준은 2026년 6당 체제이므로 이전 연도에는 현행 규칙을 역적용하지 않는다.
+    if (year < 2026) return display;
+
+    const base = [];
+    let seq = 0;
+    const addBase = (key,label,name,policy='none',group=null)=>{
+      if (!key) return;
+      base.push({id:`${year}:${++seq}`,key,label,name,policy,group});
+      mergeHolidayDisplay(display,key,label,name);
+    };
+
+    // 고정 공휴일. weekend 정책은 토/일 중복 시 대체공휴일 대상.
+    addBase(`${year}-01-01`,'신정','1월 1일','none');
+    addBase(`${year}-03-01`,'3·1절','3·1절','weekend');
+    addBase(`${year}-05-01`,'노동절','노동절','weekend');
+    addBase(`${year}-05-05`,'어린이날','어린이날','weekend');
+    addBase(`${year}-06-06`,'현충일','현충일','none');
+    addBase(`${year}-07-17`,'제헌절','제헌절','weekend');
+    addBase(`${year}-08-15`,'광복절','광복절','weekend');
+    addBase(`${year}-10-03`,'개천절','개천절','weekend');
+    addBase(`${year}-10-09`,'한글날','한글날','weekend');
+    addBase(`${year}-12-25`,'성탄절','기독탄신일','weekend');
+
+    // 음력 공휴일. Intl의 중국력은 Safari/iOS에서 제공되며 한국의 설·부처님오신날·추석 날짜와 일치한다.
+    const seollal = findSolarForLunar(year,1,1,1,3);
+    if (seollal){
+      addBase(holidayAddDays(seollal,-1),'설연휴','설날 연휴','group','seollal');
+      addBase(seollal,'설날','설날','group','seollal');
+      addBase(holidayAddDays(seollal,1),'설연휴','설날 연휴','group','seollal');
+    }
+
+    const buddha = findSolarForLunar(year,4,8,4,6);
+    if (buddha) addBase(buddha,'부처님오신날','부처님오신날','weekend');
+
+    const chuseok = findSolarForLunar(year,8,15,8,10);
+    if (chuseok){
+      addBase(holidayAddDays(chuseok,-1),'연휴','추석 연휴','group','chuseok');
+      addBase(chuseok,'추석','추석','group','chuseok');
+      addBase(holidayAddDays(chuseok,1),'연휴','추석 연휴','group','chuseok');
+    }
+
+    // 선거일·정부 수시 지정일처럼 달력 수학만으로 사전에 확정할 수 없는 날짜.
+    for (const [key,info] of Object.entries(SPECIAL_HOLIDAYS)){
+      if (Number(key.slice(0,4))===year) addBase(key,info.label,info.name,'none');
+    }
+
+    const byKey = new Map();
+    for (const rec of base){
+      if (!byKey.has(rec.key)) byKey.set(rec.key,[]);
+      byKey.get(rec.key).push(rec);
+    }
+
+    // 대체공휴일 발생 원인을 수집한다.
+    const triggers = [];
+    const triggered = new Set();
+    const pushTrigger = (id,anchor,source)=>{
+      if (triggered.has(id)) return;
+      triggered.add(id);
+      triggers.push({anchor,source});
+    };
+
+    for (const rec of base){
+      const wd = holidayWeekday(rec.key);
+      if (rec.policy==='weekend' && (wd===0 || wd===6)){
+        pushTrigger(`weekend:${rec.id}`,rec.key,rec.name);
+      }
+      // 토·일이 아닌 날에 다른 공휴일과 겹친 경우.
+      if (rec.policy!=='none' && wd!==0 && wd!==6 && (byKey.get(rec.key)?.length || 0) > 1){
+        pushTrigger(`collision:${rec.id}`,rec.key,rec.name);
+      }
+    }
+
+    // 설날/추석 3일 중 일요일이 포함되면 그룹당 1일의 대체공휴일.
+    for (const group of ['seollal','chuseok']){
+      const members = base.filter(r=>r.group===group);
+      const sunday = members.find(r=>holidayWeekday(r.key)===0);
+      if (sunday){
+        pushTrigger(`group-sunday:${group}`,sunday.key,group==='seollal' ? '설날' : '추석');
+      }
+    }
+
+    triggers.sort((a,b)=>a.anchor.localeCompare(b.anchor));
+
+    // '첫 번째 비공휴일'을 찾되, 대체공휴일이 토요일이면 다시 다음 비공휴일로 이동한다.
+    const occupied = new Set(base.map(r=>r.key));
+    for (const trig of triggers){
+      let candidate = holidayAddDays(trig.anchor,1);
+      while (true){
+        const wd = holidayWeekday(candidate);
+        if (wd!==0 && wd!==6 && !occupied.has(candidate)) break;
+        candidate = holidayAddDays(candidate,1);
+      }
+      occupied.add(candidate);
+      mergeHolidayDisplay(display,candidate,'대체휴일',`${trig.source} 대체공휴일`);
+    }
+
+    return display;
+  }
   const DAY_MS = 86400000;
   const historyStart = '2026-09-20';
   const formulaStart = '2026-09-26';
@@ -245,7 +388,10 @@
     return Math.floor(Date.UTC(y,m-1,d) / DAY_MS);
   }
   function mod(n,m){ return ((n % m) + m) % m; }
-  function holidayForKey(key){ return HOLIDAYS[key] || null; }
+  function holidayForKey(key){
+    const year = Number(key.slice(0,4));
+    return generateHolidayYear(year).get(key) || generateHolidayYear(year-1).get(key) || null;
+  }
 
   function shiftForDate(team, y, m, d){
     const key = keyOf(y,m,d);
