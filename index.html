@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0d11" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
-<title>통수본 근무</title>
+<title>통수본</title>
 <style>
   :root{
     color-scheme:dark;
@@ -21,7 +21,7 @@
     --duty:#ff9f43;
     --rest:#ff5e7e;
     --work:#55aaff;
-    --off:#b9c1cb;
+    --off:#d56a72;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{
@@ -50,19 +50,21 @@
     flex-direction:column;
     overflow:hidden;
   }
-  .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
-  h1{font-size:27px;line-height:1.2;margin:0;font-weight:800;letter-spacing:-.04em}
-  .team-wrap{position:relative;min-width:96px}
-  select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:16px;color:var(--text);font-size:18px;font-weight:750;padding:12px 34px 12px 14px;outline:none}
-  .team-wrap:after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:15px}
+  .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  h1{font-size:23px;line-height:1.15;margin:0;font-weight:800;letter-spacing:-.04em}
+  .team-wrap{position:relative;min-width:82px}
+  select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:14px;color:var(--text);font-size:16px;font-weight:750;padding:9px 30px 9px 12px;outline:none}
+  .team-wrap:after{content:"▾";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:13px}
 
-  .monthbar{flex:0 0 auto;display:flex;justify-content:center;align-items:center;min-height:69px;margin-bottom:8px}
-  .monthcenter{text-align:center;min-width:180px}
-  .monthtitle{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+  .monthbar{flex:0 0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:8px;min-height:40px;margin-bottom:6px}
+  .monthspacer{min-width:0}
+  .monthcenter{text-align:center;min-width:0}
+  .monthtitle{font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1.15;white-space:nowrap}
   .todaybtn{
-    margin-top:7px;
-    min-height:30px;
-    padding:5px 12px;
+    justify-self:end;
+    margin-top:0;
+    min-height:28px;
+    padding:4px 10px;
     border:1px solid var(--line);
     border-radius:999px;
     background:var(--panel2);
@@ -111,7 +113,7 @@
   .badge.duty{color:rgba(255,159,67,.82);background:transparent;border-color:transparent}
   .badge.rest{color:rgba(255,94,126,.80);background:transparent;border-color:transparent}
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
-  .badge.off{color:rgba(185,193,203,.70);background:transparent;border-color:transparent}
+  .badge.off{color:rgba(213,106,114,.82);background:transparent;border-color:transparent}
   .holiday-name{margin:0;min-height:13px;padding:0;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
@@ -121,8 +123,8 @@
 
   @media (min-width:600px){
     .app{padding-left:16px;padding-right:16px}
-    h1{font-size:30px}
-    .monthtitle{font-size:25px}
+    h1{font-size:26px}
+    .monthtitle{font-size:23px}
     .day{padding:4px 6px 3px;grid-template-rows:27px 32px 15px}
     .daynumrow{min-height:27px}.daynum{min-width:28px;height:27px;font-size:15px}
     .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
@@ -133,7 +135,7 @@
 <body>
 <main class="app">
   <div class="top">
-    <h1>통수본 근무</h1>
+    <h1>통수본</h1>
     <div class="team-wrap">
       <select id="teamSelect" aria-label="팀 선택">
         <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
@@ -144,10 +146,11 @@
   </div>
 
   <div class="monthbar">
+    <div class="monthspacer" aria-hidden="true"></div>
     <div class="monthcenter">
       <div class="monthtitle" id="monthTitle"></div>
-      <button class="todaybtn is-hidden" id="todayBtn">오늘로 돌아가기</button>
     </div>
+    <button class="todaybtn is-hidden" id="todayBtn">오늘로 돌아가기</button>
   </div>
 
   <section class="calendar" id="calendar" aria-label="근무 달력">
