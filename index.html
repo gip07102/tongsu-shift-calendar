@@ -102,16 +102,18 @@
   .day.other{opacity:.34;background:#0d1116}
   .day.today{background:#192029;box-shadow:inset 0 0 0 2px rgba(244,246,248,.9)}
   .daynumrow{min-height:24px;display:flex;align-items:center}
-  .daynum{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;font-size:14px;font-weight:750;line-height:1;color:#e8ebef}
+  .daynum{display:inline-flex;align-items:baseline;justify-content:center;min-width:26px;height:24px;font-size:14px;font-weight:750;line-height:1;color:#e8ebef}
+  .daynum .month-prefix{font-size:.78em;font-weight:700;opacity:.58;margin-right:1px}
+  .daynum .day-one{font-size:1em;font-weight:750}
   .day.sun .daynum{color:var(--sun)}
   .day.sat .daynum{color:var(--sat)}
   .day.holiday:not(.sat) .daynum{color:var(--sun)}
   .shift{display:flex;justify-content:center;align-items:center;min-height:29px;margin-top:3px}
-  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:16px;border:1px solid transparent}
-  .badge.duty{color:var(--duty);background:rgba(255,159,67,.12);border-color:rgba(255,159,67,.28)}
-  .badge.rest{color:var(--rest);background:rgba(255,94,126,.11);border-color:rgba(255,94,126,.25)}
-  .badge.work{color:var(--work);background:rgba(85,170,255,.11);border-color:rgba(85,170,255,.24)}
-  .badge.off{color:var(--off);background:rgba(185,193,203,.08);border-color:rgba(185,193,203,.17)}
+  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;border:1px solid transparent;background:transparent}
+  .badge.duty{color:rgba(255,159,67,.82);background:transparent;border-color:transparent}
+  .badge.rest{color:rgba(255,94,126,.80);background:transparent;border-color:transparent}
+  .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
+  .badge.off{color:rgba(185,193,203,.70);background:transparent;border-color:transparent}
   .holiday-name{margin-top:auto;min-height:13px;padding-top:2px;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
@@ -336,7 +338,17 @@
       numRow.className = 'daynumrow';
       const n = document.createElement('div');
       n.className = 'daynum';
-      n.textContent = d;
+      if (d === 1){
+        const monthPrefix = document.createElement('span');
+        monthPrefix.className = 'month-prefix';
+        monthPrefix.textContent = `${m + 1}/`;
+        const dayOne = document.createElement('span');
+        dayOne.className = 'day-one';
+        dayOne.textContent = '1';
+        n.append(monthPrefix, dayOne);
+      } else {
+        n.textContent = d;
+      }
       numRow.appendChild(n);
       cell.appendChild(numRow);
 
