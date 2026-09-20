@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0d11" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<title>통수본 근무</title>
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0a0d11;
+    --panel:#11161c;
+    --panel2:#161c23;
+    --line:#27303a;
+    --text:#f4f6f8;
+    --muted:#89939f;
+    --sun:#ff5b67;
+    --sat:#4da3ff;
+    --duty:#ff9f43;
+    --rest:#ff5e7e;
+    --work:#55aaff;
+    --off:#b9c1cb;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+  body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  .app{max-width:720px;margin:0 auto;padding:22px 16px 28px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
+  h1{font-size:30px;line-height:1.2;margin:0;font-weight:800;letter-spacing:-.04em}
+  .team-wrap{position:relative;min-width:104px}
+  select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:16px;color:var(--text);font-size:20px;font-weight:750;padding:13px 36px 13px 16px;outline:none}
+  .team-wrap:after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:15px}
+  .monthbar{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;gap:8px;margin-bottom:10px}
+  .iconbtn{height:48px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:15px;font-size:32px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .monthcenter{text-align:center}
+  .monthtitle{font-size:25px;font-weight:800;letter-spacing:-.03em}
+  .todaybtn{border:0;background:transparent;color:var(--muted);font-size:14px;padding:6px 10px;margin-top:2px;cursor:pointer}
+  .calendar{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel)}
+  .weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+  .weekdays{border-bottom:1px solid var(--line);background:#0f141a}
+  .weekday{text-align:center;padding:13px 0 12px;font-size:14px;font-weight:750;color:var(--muted)}
+  .weekday.sun{color:var(--sun)} .weekday.sat{color:var(--sat)}
+  .day{min-height:92px;padding:9px 7px 8px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel)}
+  .day:nth-child(7n){border-right:0}
+  .day:nth-last-child(-n+7){border-bottom:0}
+  .day.other{opacity:.34;background:#0d1116}
+  .daynum{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-size:15px;font-weight:750;color:#e8ebef}
+  .day.sun .daynum{color:var(--sun)} .day.sat .daynum{color:var(--sat)}
+  .day.today .daynum{outline:2px solid #e9edf2;outline-offset:-2px}
+  .shift{margin-top:7px;display:flex;justify-content:center}
+  .badge{min-width:38px;height:31px;padding:0 9px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:17px;border:1px solid transparent}
+  .badge.duty{color:var(--duty);background:rgba(255,159,67,.12);border-color:rgba(255,159,67,.28)}
+  .badge.rest{color:var(--rest);background:rgba(255,94,126,.11);border-color:rgba(255,94,126,.25)}
+  .badge.work{color:var(--work);background:rgba(85,170,255,.11);border-color:rgba(85,170,255,.24)}
+  .badge.off{color:var(--off);background:rgba(185,193,203,.08);border-color:rgba(185,193,203,.17)}
+  .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:15px 8px 2px;color:var(--muted);font-size:13px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
+  @media (max-width:430px){
+    .app{padding:18px 10px 24px} h1{font-size:27px}.team-wrap{min-width:96px}select{font-size:18px;padding:12px 34px 12px 14px}
+    .monthtitle{font-size:22px}.day{min-height:79px;padding:7px 4px}.daynum{width:27px;height:27px;font-size:14px}.badge{min-width:34px;height:28px;font-size:16px;padding:0 7px}.calendar{border-radius:18px}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top">
+    <h1>통수본 근무</h1>
+    <div class="team-wrap">
+      <select id="teamSelect" aria-label="팀 선택">
+        <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
+        <option value="5">5팀</option><option value="6">6팀</option><option value="7">7팀</option><option value="8">8팀</option>
+        <option value="9">9팀</option><option value="10">10팀</option><option value="11">11팀</option><option value="12">12팀</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="monthbar">
+    <button class="iconbtn" id="prevMonth" aria-label="이전 달">‹</button>
+    <div class="monthcenter">
+      <div class="monthtitle" id="monthTitle"></div>
+      <button class="todaybtn" id="todayBtn">오늘</button>
+    </div>
+    <button class="iconbtn" id="nextMonth" aria-label="다음 달">›</button>
+  </div>
+
+  <section class="calendar" aria-label="근무 달력">
+    <div class="weekdays">
+      <div class="weekday sun">일</div><div class="weekday">월</div><div class="weekday">화</div><div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div><div class="weekday sat">토</div>
+    </div>
+    <div class="grid" id="calendarGrid"></div>
+  </section>
+
+  <div class="legend" aria-label="근무 표시">
+    <span><i class="dot d1"></i>당</span><span><i class="dot d2"></i>휴</span><span><i class="dot d3"></i>일</span><span><i class="dot d4"></i>비</span>
+  </div>
+</main>
+<script>
+(() => {
+  'use strict';
+
+  const teamSelect = document.getElementById('teamSelect');
+  const grid = document.getElementById('calendarGrid');
+  const monthTitle = document.getElementById('monthTitle');
+  const prevMonth = document.getElementById('prevMonth');
+  const nextMonth = document.getElementById('nextMonth');
+  const todayBtn = document.getElementById('todayBtn');
+
+  const now = new Date();
+  let viewYear = now.getFullYear();
+  let viewMonth = now.getMonth();
+
+  const savedTeam = Number(localStorage.getItem('tongsu_team'));
+  let selectedTeam = (savedTeam >= 1 && savedTeam <= 12) ? savedTeam : 11;
+  teamSelect.value = String(selectedTeam);
+
+  // 6개 동일근무 그룹의 당직 기준일: 1/7=9/22, 2/8=9/23 ... 6/12=9/27.
+  const anchors = {
+    1:'2026-09-22', 2:'2026-09-23', 3:'2026-09-24',
+    4:'2026-09-25', 5:'2026-09-26', 6:'2026-09-27'
+  };
+
+  // 2026-09-20~25는 팀 증설 직후 실제 지정표를 그대로 반영.
+  const transition = {
+    1:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'당','2026-09-23':'휴','2026-09-24':'비','2026-09-25':'비'},
+    2:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'일','2026-09-23':'당','2026-09-24':'휴','2026-09-25':'비'},
+    3:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'일','2026-09-23':'일','2026-09-24':'당','2026-09-25':'휴'},
+    4:{'2026-09-20':'휴','2026-09-21':'일','2026-09-22':'일','2026-09-23':'일','2026-09-24':'비','2026-09-25':'당'},
+    5:{'2026-09-20':'당','2026-09-21':'휴','2026-09-22':'일','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'},
+    6:{'2026-09-20':'비','2026-09-21':'당','2026-09-22':'휴','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'},
+    7:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'당','2026-09-23':'휴','2026-09-24':'비','2026-09-25':'비'},
+    8:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'일','2026-09-23':'당','2026-09-24':'휴','2026-09-25':'비'},
+    9:{'2026-09-20':'휴','2026-09-21':'일','2026-09-22':'일','2026-09-23':'일','2026-09-24':'당','2026-09-25':'휴'},
+    10:{'2026-09-20':'당','2026-09-21':'휴','2026-09-22':'일','2026-09-23':'일','2026-09-24':'비','2026-09-25':'당'},
+    11:{'2026-09-20':'비','2026-09-21':'일','2026-09-22':'일','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'},
+    12:{'2026-09-20':'비','2026-09-21':'당','2026-09-22':'휴','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'}
+  };
+
+  const DAY_MS = 86400000;
+  const systemStart = '2026-09-20';
+  const formulaStart = '2026-09-26';
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function keyOf(y,m,d){ return `${y}-${pad(m+1)}-${pad(d)}`; }
+  function utcDayFromKey(key){
+    const [y,m,d] = key.split('-').map(Number);
+    return Math.floor(Date.UTC(y,m-1,d) / DAY_MS);
+  }
+  function mod(n,m){ return ((n % m) + m) % m; }
+  function groupForTeam(team){ return ((team - 1) % 6) + 1; }
+
+  function shiftForDate(team, y, m, d){
+    const key = keyOf(y,m,d);
+    if (key < systemStart) return '';
+    if (key < formulaStart && transition[team] && transition[team][key]) return transition[team][key];
+
+    const group = groupForTeam(team);
+    const delta = utcDayFromKey(key) - utcDayFromKey(anchors[group]);
+    const phase = mod(delta, 6);
+    if (phase === 0) return '당';
+    if (phase === 1) return '휴';
+
+    const weekday = new Date(y,m,d).getDay();
+    if (weekday === 0 || weekday === 6) return '비';
+    return '일';
+  }
+
+  function badgeClass(shift){
+    return shift === '당' ? 'duty' : shift === '휴' ? 'rest' : shift === '일' ? 'work' : 'off';
+  }
+
+  function isToday(y,m,d){
+    return y === now.getFullYear() && m === now.getMonth() && d === now.getDate();
+  }
+
+  function render(){
+    monthTitle.textContent = `${viewYear}년 ${viewMonth + 1}월`;
+    grid.innerHTML = '';
+
+    const first = new Date(viewYear, viewMonth, 1);
+    const startOffset = first.getDay();
+    const start = new Date(viewYear, viewMonth, 1 - startOffset);
+
+    for(let i=0;i<42;i++){
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
+      const wd = date.getDay();
+      const shift = shiftForDate(selectedTeam, y, m, d);
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      if (m !== viewMonth) cell.classList.add('other');
+      if (wd === 0) cell.classList.add('sun');
+      if (wd === 6) cell.classList.add('sat');
+      if (isToday(y,m,d)) cell.classList.add('today');
+
+      const n = document.createElement('div');
+      n.className = 'daynum';
+      n.textContent = d;
+      cell.appendChild(n);
+
+      if (shift){
+        const wrap = document.createElement('div');
+        wrap.className = 'shift';
+        const badge = document.createElement('span');
+        badge.className = `badge ${badgeClass(shift)}`;
+        badge.textContent = shift;
+        wrap.appendChild(badge);
+        cell.appendChild(wrap);
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  teamSelect.addEventListener('change', () => {
+    selectedTeam = Number(teamSelect.value);
+    localStorage.setItem('tongsu_team', String(selectedTeam));
+    render();
+  });
+  prevMonth.addEventListener('click', () => {
+    viewMonth--;
+    if(viewMonth < 0){ viewMonth = 11; viewYear--; }
+    render();
+  });
+  nextMonth.addEventListener('click', () => {
+    viewMonth++;
+    if(viewMonth > 11){ viewMonth = 0; viewYear++; }
+    render();
+  });
+  todayBtn.addEventListener('click', () => {
+    viewYear = now.getFullYear(); viewMonth = now.getMonth(); render();
+  });
+
+  render();
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
+<noscript><div style="padding:24px;color:#fff;background:#0a0d11;font-family:-apple-system,sans-serif">이 파일은 Safari에서 열어야 달력 조작이 가능합니다.</div></noscript>
+</body>
+</html>
