@@ -24,53 +24,109 @@
     --off:#b9c1cb;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
-  body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-  .app{max-width:720px;margin:0 auto;padding:22px 16px 28px}
-  .top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
-  h1{font-size:30px;line-height:1.2;margin:0;font-weight:800;letter-spacing:-.04em}
-  .team-wrap{position:relative;min-width:104px}
-  select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:16px;color:var(--text);font-size:20px;font-weight:750;padding:13px 36px 13px 16px;outline:none}
+  html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    overscroll-behavior:none;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  }
+  body{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100dvh;
+  }
+  .app{
+    width:100%;
+    max-width:720px;
+    height:100dvh;
+    margin:0 auto;
+    padding:calc(16px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+  h1{font-size:27px;line-height:1.2;margin:0;font-weight:800;letter-spacing:-.04em}
+  .team-wrap{position:relative;min-width:96px}
+  select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:16px;color:var(--text);font-size:18px;font-weight:750;padding:12px 34px 12px 14px;outline:none}
   .team-wrap:after{content:"▾";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:15px}
-  .monthbar{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;gap:8px;margin-bottom:10px}
-  .iconbtn{height:48px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:15px;font-size:32px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .monthcenter{text-align:center}
-  .monthtitle{font-size:25px;font-weight:800;letter-spacing:-.03em;transition:opacity .13s ease}
-  .todaybtn{border:0;background:transparent;color:var(--muted);font-size:14px;padding:6px 10px;margin-top:2px;cursor:pointer}
-  .calendar{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel);touch-action:none}
-  .weekdays,.grid{display:grid;grid-template-columns:repeat(7,1fr)}
-  .weekdays{border-bottom:1px solid var(--line);background:#0f141a}
-  .weekday{text-align:center;padding:13px 0 12px;font-size:14px;font-weight:750;color:var(--muted)}
+
+  .monthbar{flex:0 0 auto;display:flex;justify-content:center;align-items:center;min-height:69px;margin-bottom:8px}
+  .monthcenter{text-align:center;min-width:180px}
+  .monthtitle{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+  .todaybtn{
+    margin-top:7px;
+    min-height:30px;
+    padding:5px 12px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--panel2);
+    color:#d7dde4;
+    font-size:12.5px;
+    font-weight:750;
+    cursor:pointer;
+    opacity:1;
+    transition:opacity .14s ease,background .14s ease;
+  }
+  .todaybtn.is-hidden{visibility:hidden;opacity:0;pointer-events:none}
+
+  .calendar{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    background:var(--panel);
+    touch-action:none;
+    overscroll-behavior:contain;
+  }
+  .weekdays{flex:0 0 auto;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:#0f141a}
+  .weekday{text-align:center;padding:11px 0 10px;font-size:14px;font-weight:750;color:var(--muted)}
   .weekday.sun{color:var(--sun)} .weekday.sat{color:var(--sat)}
-  .grid{will-change:transform,opacity}
-  .grid.enter-next{animation:enterNext .18s ease-out}
-  .grid.enter-prev{animation:enterPrev .18s ease-out}
-  @keyframes enterNext{from{transform:translateY(26px);opacity:.25}to{transform:translateY(0);opacity:1}}
-  @keyframes enterPrev{from{transform:translateY(-26px);opacity:.25}to{transform:translateY(0);opacity:1}}
-  .day{min-height:94px;padding:8px 6px 7px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:flex;flex-direction:column;cursor:pointer;user-select:none}
+
+  .month-viewport{position:relative;flex:1 1 auto;min-height:0;overflow:hidden;touch-action:none}
+  .month-track{position:absolute;inset:0 auto auto 0;width:100%;height:300%;will-change:transform;transform:translate3d(0,0,0)}
+  .month-page{height:33.333333%;width:100%;overflow:hidden}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,minmax(0,1fr));height:100%;width:100%}
+
+  .day{min-height:0;padding:6px 4px 4px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:flex;flex-direction:column;cursor:pointer;user-select:none}
   .day:nth-child(7n){border-right:0}
   .day:nth-last-child(-n+7){border-bottom:0}
   .day.other{opacity:.34;background:#0d1116}
   .day.today{background:#192029;box-shadow:inset 0 0 0 2px rgba(244,246,248,.9)}
-  .daynumrow{min-height:27px;display:flex;align-items:center}
-  .daynum{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:27px;font-size:15px;font-weight:750;line-height:1;color:#e8ebef}
+  .daynumrow{min-height:24px;display:flex;align-items:center}
+  .daynum{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;font-size:14px;font-weight:750;line-height:1;color:#e8ebef}
   .day.sun .daynum{color:var(--sun)}
   .day.sat .daynum{color:var(--sat)}
   .day.holiday:not(.sat) .daynum{color:var(--sun)}
-  .shift{display:flex;justify-content:center;align-items:center;min-height:32px;margin-top:4px}
-  .badge{min-width:38px;height:31px;padding:0 9px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:17px;border:1px solid transparent}
+  .shift{display:flex;justify-content:center;align-items:center;min-height:29px;margin-top:3px}
+  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:16px;border:1px solid transparent}
   .badge.duty{color:var(--duty);background:rgba(255,159,67,.12);border-color:rgba(255,159,67,.28)}
   .badge.rest{color:var(--rest);background:rgba(255,94,126,.11);border-color:rgba(255,94,126,.25)}
   .badge.work{color:var(--work);background:rgba(85,170,255,.11);border-color:rgba(85,170,255,.24)}
   .badge.off{color:var(--off);background:rgba(185,193,203,.08);border-color:rgba(185,193,203,.17)}
-  .holiday-name{margin-top:auto;min-height:15px;padding-top:3px;text-align:center;color:var(--sun);font-size:9.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:15px 8px 2px;color:var(--muted);font-size:13px}
+  .holiday-name{margin-top:auto;min-height:13px;padding-top:2px;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
-  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 15px;border-radius:13px;background:rgba(30,36,44,.96);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 30px rgba(0,0,0,.34);color:#fff;font-size:14px;font-weight:700;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:1000;text-align:center;white-space:nowrap}
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 15px;border-radius:13px;background:rgba(30,36,44,.96);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 30px rgba(0,0,0,.34);color:#fff;font-size:13px;font-weight:700;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:1000;text-align:center;white-space:nowrap}
   .toast.show{opacity:1;transform:translate(-50%,0)}
-  @media (max-width:430px){
-    .app{padding:18px 10px 24px} h1{font-size:27px}.team-wrap{min-width:96px}select{font-size:18px;padding:12px 34px 12px 14px}
-    .monthtitle{font-size:22px}.day{min-height:84px;padding:6px 4px}.daynumrow{min-height:24px}.daynum{min-width:26px;height:24px;font-size:14px}.shift{min-height:29px;margin-top:3px}.badge{min-width:34px;height:28px;font-size:16px;padding:0 7px}.holiday-name{font-size:8.5px;min-height:13px;padding-top:2px}.calendar{border-radius:18px}.toast{font-size:13px}
+
+  @media (min-width:600px){
+    .app{padding-left:16px;padding-right:16px}
+    h1{font-size:30px}
+    .monthtitle{font-size:25px}
+    .day{padding:8px 6px 6px}
+    .daynumrow{min-height:27px}.daynum{min-width:28px;height:27px;font-size:15px}
+    .shift{min-height:32px;margin-top:4px}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
+    .holiday-name{font-size:9.5px;min-height:15px;padding-top:3px}
   }
 </style>
 </head>
@@ -88,19 +144,19 @@
   </div>
 
   <div class="monthbar">
-    <button class="iconbtn" id="prevMonth" aria-label="이전 달">‹</button>
     <div class="monthcenter">
       <div class="monthtitle" id="monthTitle"></div>
-      <button class="todaybtn" id="todayBtn">오늘</button>
+      <button class="todaybtn is-hidden" id="todayBtn">오늘로 돌아가기</button>
     </div>
-    <button class="iconbtn" id="nextMonth" aria-label="다음 달">›</button>
   </div>
 
   <section class="calendar" id="calendar" aria-label="근무 달력">
     <div class="weekdays">
       <div class="weekday sun">일</div><div class="weekday">월</div><div class="weekday">화</div><div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div><div class="weekday sat">토</div>
     </div>
-    <div class="grid" id="calendarGrid"></div>
+    <div class="month-viewport" id="monthViewport">
+      <div class="month-track" id="monthTrack"></div>
+    </div>
   </section>
 
   <div class="legend" aria-label="근무 표시">
@@ -114,10 +170,9 @@
 
   const teamSelect = document.getElementById('teamSelect');
   const calendar = document.getElementById('calendar');
-  const grid = document.getElementById('calendarGrid');
+  const monthViewport = document.getElementById('monthViewport');
+  const monthTrack = document.getElementById('monthTrack');
   const monthTitle = document.getElementById('monthTitle');
-  const prevMonth = document.getElementById('prevMonth');
-  const nextMonth = document.getElementById('nextMonth');
   const todayBtn = document.getElementById('todayBtn');
   const toast = document.getElementById('toast');
 
@@ -227,6 +282,11 @@
     return y === now.getFullYear() && m === now.getMonth() && d === now.getDate();
   }
 
+  function shiftedMonth(y,m,delta){
+    const date = new Date(y,m + delta,1);
+    return {year:date.getFullYear(),month:date.getMonth()};
+  }
+
   let toastTimer = null;
   function showToastForDate(y,m,d){
     const key = keyOf(y,m,d);
@@ -239,20 +299,25 @@
     toast.textContent = parts.join(' · ');
     toast.classList.add('show');
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>toast.classList.remove('show'), 1900);
+    toastTimer = setTimeout(()=>toast.classList.remove('show'),1900);
   }
 
-  function render(enterDirection=0){
-    monthTitle.textContent = `${viewYear}년 ${viewMonth + 1}월`;
-    grid.innerHTML = '';
-    grid.classList.remove('enter-next','enter-prev');
+  let suppressTapUntil = 0;
 
-    const first = new Date(viewYear, viewMonth, 1);
+  function createMonthPage(pageYear,pageMonth){
+    const page = document.createElement('div');
+    page.className = 'month-page';
+    page.dataset.year = String(pageYear);
+    page.dataset.month = String(pageMonth);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    const first = new Date(pageYear,pageMonth,1);
     const startOffset = first.getDay();
-    const start = new Date(viewYear, viewMonth, 1 - startOffset);
+    const start = new Date(pageYear,pageMonth,1 - startOffset);
 
     for(let i=0;i<42;i++){
-      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const date = new Date(start.getFullYear(),start.getMonth(),start.getDate() + i);
       const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
       const wd = date.getDay();
       const key = keyOf(y,m,d);
@@ -261,11 +326,11 @@
 
       const cell = document.createElement('div');
       cell.className = 'day';
-      if (m !== viewMonth) cell.classList.add('other');
+      if (m !== pageMonth) cell.classList.add('other');
       if (wd === 0) cell.classList.add('sun');
       if (wd === 6) cell.classList.add('sat');
       if (holiday) cell.classList.add('holiday');
-      if (isToday(y,m,d)) cell.classList.add('today');
+      if (m === pageMonth && isToday(y,m,d)) cell.classList.add('today');
 
       const numRow = document.createElement('div');
       numRow.className = 'daynumrow';
@@ -299,57 +364,168 @@
       grid.appendChild(cell);
     }
 
-    if (enterDirection !== 0){
-      void grid.offsetWidth;
-      grid.classList.add(enterDirection > 0 ? 'enter-next' : 'enter-prev');
-    }
+    page.appendChild(grid);
+    return page;
   }
 
-  function changeMonth(delta){
-    viewMonth += delta;
-    if(viewMonth < 0){ viewMonth = 11; viewYear--; }
-    if(viewMonth > 11){ viewMonth = 0; viewYear++; }
-    render(delta);
+  function updateHeader(){
+    monthTitle.textContent = `${viewYear}년 ${viewMonth + 1}월`;
+    const atTodayMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+    todayBtn.classList.toggle('is-hidden',atTodayMonth);
+    todayBtn.setAttribute('aria-hidden',atTodayMonth ? 'true' : 'false');
+    todayBtn.tabIndex = atTodayMonth ? -1 : 0;
   }
 
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchStartAt = 0;
-  let suppressTapUntil = 0;
+  function viewportHeight(){
+    return Math.max(1,monthViewport.clientHeight);
+  }
+
+  function setTrackY(y,animate){
+    monthTrack.style.transition = animate ? 'transform .22s cubic-bezier(.22,.72,.25,1)' : 'none';
+    monthTrack.style.transform = `translate3d(0,${y}px,0)`;
+  }
+
+  function buildMonthTrack(){
+    const prev = shiftedMonth(viewYear,viewMonth,-1);
+    const next = shiftedMonth(viewYear,viewMonth,1);
+    monthTrack.innerHTML = '';
+    monthTrack.appendChild(createMonthPage(prev.year,prev.month));
+    monthTrack.appendChild(createMonthPage(viewYear,viewMonth));
+    monthTrack.appendChild(createMonthPage(next.year,next.month));
+    updateHeader();
+    requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
+  }
+
+  function applyMonthDelta(delta){
+    const target = shiftedMonth(viewYear,viewMonth,delta);
+    viewYear = target.year;
+    viewMonth = target.month;
+  }
+
+  let animating = false;
+  function commitMonth(delta){
+    if (animating || delta === 0) return;
+    animating = true;
+    const h = viewportHeight();
+    const targetY = delta > 0 ? -2 * h : 0;
+    setTrackY(targetY,true);
+
+    const finish = ()=>{
+      monthTrack.removeEventListener('transitionend',finish);
+      applyMonthDelta(delta);
+      animating = false;
+      buildMonthTrack();
+    };
+    monthTrack.addEventListener('transitionend',finish);
+    setTimeout(()=>{
+      if (!animating) return;
+      monthTrack.removeEventListener('transitionend',finish);
+      applyMonthDelta(delta);
+      animating = false;
+      buildMonthTrack();
+    },320);
+  }
+
+  function snapToCurrent(){
+    setTrackY(-viewportHeight(),true);
+  }
+
+  const gesture = {
+    active:false,
+    startX:0,
+    startY:0,
+    lastY:0,
+    startAt:0,
+    axis:null,
+    dragged:false
+  };
 
   calendar.addEventListener('touchstart',e=>{
-    if(e.touches.length !== 1) return;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchStartAt = Date.now();
+    if (animating || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    gesture.active = true;
+    gesture.startX = t.clientX;
+    gesture.startY = t.clientY;
+    gesture.lastY = t.clientY;
+    gesture.startAt = performance.now();
+    gesture.axis = null;
+    gesture.dragged = false;
+    setTrackY(-viewportHeight(),false);
   },{passive:true});
 
+  calendar.addEventListener('touchmove',e=>{
+    if (!gesture.active || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - gesture.startX;
+    const dy = t.clientY - gesture.startY;
+
+    if (!gesture.axis && (Math.abs(dx) > 7 || Math.abs(dy) > 7)){
+      gesture.axis = Math.abs(dy) >= Math.abs(dx) ? 'y' : 'x';
+    }
+    if (gesture.axis !== 'y') return;
+
+    e.preventDefault();
+    gesture.lastY = t.clientY;
+    if (Math.abs(dy) > 9) gesture.dragged = true;
+
+    const h = viewportHeight();
+    const limit = h * .58;
+    const clamped = Math.max(-limit,Math.min(limit,dy));
+    setTrackY(-h + clamped,false);
+  },{passive:false});
+
+  function finishGesture(clientY){
+    if (!gesture.active) return;
+    const dy = clientY - gesture.startY;
+    const elapsed = Math.max(1,performance.now() - gesture.startAt);
+    const velocity = Math.abs(dy) / elapsed;
+    const h = viewportHeight();
+    const threshold = Math.max(52,h * .12);
+    const vertical = gesture.axis === 'y';
+    const shouldChange = vertical && (Math.abs(dy) >= threshold || (Math.abs(dy) >= 28 && velocity >= .45));
+
+    if (gesture.dragged) suppressTapUntil = Date.now() + 360;
+    gesture.active = false;
+    gesture.axis = null;
+
+    if (shouldChange) commitMonth(dy < 0 ? 1 : -1);
+    else snapToCurrent();
+  }
+
   calendar.addEventListener('touchend',e=>{
-    if(!e.changedTouches.length) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    const elapsed = Date.now() - touchStartAt;
-    if(elapsed > 900) return;
-    if(Math.abs(dy) < 55) return;
-    if(Math.abs(dy) < Math.abs(dx) * 1.25) return;
-    suppressTapUntil = Date.now() + 350;
-    changeMonth(dy < 0 ? 1 : -1);
+    if (!e.changedTouches.length) return;
+    finishGesture(e.changedTouches[0].clientY);
+  },{passive:true});
+
+  calendar.addEventListener('touchcancel',()=>{
+    if (!gesture.active) return;
+    gesture.active = false;
+    gesture.axis = null;
+    snapToCurrent();
   },{passive:true});
 
   teamSelect.addEventListener('change',()=>{
     selectedTeam = Number(teamSelect.value);
     localStorage.setItem('tongsu_team',String(selectedTeam));
-    render();
-  });
-  prevMonth.addEventListener('click',()=>changeMonth(-1));
-  nextMonth.addEventListener('click',()=>changeMonth(1));
-  todayBtn.addEventListener('click',()=>{
-    viewYear = now.getFullYear();
-    viewMonth = now.getMonth();
-    render();
+    buildMonthTrack();
   });
 
-  render();
+  todayBtn.addEventListener('click',()=>{
+    if (viewYear === now.getFullYear() && viewMonth === now.getMonth()) return;
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth();
+    buildMonthTrack();
+  });
+
+  let resizeTimer = null;
+  window.addEventListener('resize',()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{
+      if (!gesture.active && !animating) setTrackY(-viewportHeight(),false);
+    },80);
+  });
+
+  buildMonthTrack();
 })();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
