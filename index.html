@@ -348,10 +348,17 @@
       if (rec.policy==='weekend' && (wd===0 || wd===6)){
         pushTrigger(`weekend:${rec.id}`,rec.key,rec.name);
       }
-      // 토·일이 아닌 날에 다른 공휴일과 겹친 경우.
-      if (rec.policy!=='none' && wd!==0 && wd!==6 && (byKey.get(rec.key)?.length || 0) > 1){
-        pushTrigger(`collision:${rec.id}`,rec.key,rec.name);
-      }
+    }
+
+    // 같은 날짜에 공휴일이 둘 이상 겹친 경우에는 '겹친 날짜'당 대체공휴일을 1회만 생성한다.
+    // (예: 2028-10-03 추석 연휴 + 개천절 → 10/05 하루만 대체휴일)
+    for (const [key,records] of byKey.entries()){
+      const wd = holidayWeekday(key);
+      if (wd===0 || wd===6 || records.length < 2) continue;
+      const eligible = records.filter(r=>r.policy!=='none');
+      if (!eligible.length) continue;
+      const source = Array.from(new Set(eligible.map(r=>r.name))).join(' · ');
+      pushTrigger(`collision-date:${key}`,key,source);
     }
 
     // 설날/추석 3일 중 일요일이 포함되면 그룹당 1일의 대체공휴일.
