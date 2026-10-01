@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261001-personal-external-v4" />
+<meta name="tongsu-build" content="20261001-investigation-agenda-v6" />
 <style>
   :root{
     color-scheme:dark;
@@ -63,7 +63,9 @@
   .team-wrap:after{content:"▼";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:18px;font-weight:700;line-height:1}
 
   .monthbar{flex:0 0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:8px;min-height:40px;margin-bottom:6px}
-  .monthspacer{min-width:0}
+  .view-switch{justify-self:start;display:inline-flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--line);border-radius:11px;background:#0e1318;min-width:0}
+  .view-tab{border:0;border-radius:8px;background:transparent;color:#7f8994;font-size:11.5px;font-weight:800;letter-spacing:-.03em;line-height:1;padding:7px 8px;white-space:nowrap;cursor:pointer}
+  .view-tab.active{background:#252d36;color:#f3f6f8;box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
   .monthcenter{text-align:center;min-width:0}
   .monthtitle{font-size:21px;font-weight:800;letter-spacing:-.03em;line-height:1.15;white-space:nowrap}
   .todaybtn{
@@ -95,6 +97,37 @@
     touch-action:none;
     overscroll-behavior:contain;
   }
+  .calendar.is-hidden{display:none}
+  .agenda{
+    flex:1 1 auto;
+    min-height:0;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:var(--panel);
+    padding:6px 10px 14px;
+    touch-action:pan-y;
+  }
+  .agenda.is-hidden{display:none}
+  .agenda-empty{height:100%;min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;color:#707b86;font-size:13px;font-weight:700;line-height:1.6;padding:24px}
+  .agenda-day{padding:9px 0 11px;border-bottom:1px solid rgba(39,48,58,.82)}
+  .agenda-day:last-child{border-bottom:0}
+  .agenda-day-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+  .agenda-day-date{font-size:14px;font-weight:900;letter-spacing:-.035em;color:#e9edf1}
+  .agenda-shift{font-size:11px;font-weight:850;letter-spacing:-.025em;color:#a6b0ba;border:1px solid #303945;border-radius:999px;padding:4px 8px;background:#151b21;white-space:nowrap}
+  .agenda-shift.duty-primary{color:#ff8992;border-color:rgba(239,93,108,.34);background:rgba(222,76,91,.10)}
+  .agenda-shift.duty-secondary{color:#c8d0d8;border-color:rgba(154,166,180,.28);background:rgba(116,128,142,.10)}
+  .agenda-items{display:flex;flex-direction:column;gap:6px}
+  .agenda-item{width:100%;border:1px solid #29323c;border-radius:12px;background:#151a20;color:var(--text);text-align:left;padding:9px 10px;cursor:pointer}
+  .agenda-item:active{background:#1b222a}
+  .agenda-item-main{display:flex;align-items:center;gap:7px;min-width:0}
+  .agenda-emoji{flex:0 0 auto;font-size:14px;line-height:1}
+  .agenda-time{flex:0 0 auto;color:#a8b4c0;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;min-width:39px}
+  .agenda-person{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:850;letter-spacing:-.025em}
+  .agenda-sub{margin:4px 0 0 60px;color:#909ba6;font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agenda-item.memo .agenda-sub{margin-left:21px}
+  .legend.is-hidden{display:none}
   .weekdays{flex:0 0 auto;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:#0f141a}
   .weekday{text-align:center;padding:11px 0 10px;font-size:14px;font-weight:750;color:var(--muted)}
   .weekday.sun{color:var(--sun)} .weekday.sat{color:var(--sat)}
@@ -122,12 +155,47 @@
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
   .badge.off{color:rgba(213,106,114,.82);background:transparent;border-color:transparent}
   .holiday-name{margin:0;min-height:13px;padding:0;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .personal-mark{width:5px;height:5px;border-radius:50%;background:#9aa8b6;box-shadow:0 0 0 1px rgba(154,168,182,.18);flex:0 0 auto}
+  .day-flags{position:absolute;right:3px;top:4px;display:flex;align-items:center;gap:1px;pointer-events:none}
+  .day-flag{font-size:10.5px;line-height:1;filter:saturate(.86);opacity:.92}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
-  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 15px;border-radius:13px;background:rgba(30,36,44,.96);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 30px rgba(0,0,0,.34);color:#fff;font-size:13px;font-weight:700;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:1000;text-align:center;white-space:nowrap}
-  .toast.show{opacity:1;transform:translate(-50%,0)}
+  /* [국소 재설립] 날짜 토스트: 하단형 제거 → 화면 중앙 상단 카드형 */
+  .toast{
+    position:fixed;
+    left:50%;
+    top:32dvh;
+    width:min(86vw,380px);
+    padding:14px;
+    border-radius:18px;
+    background:rgba(20,25,31,.97);
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 18px 52px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.025) inset;
+    color:#f6f8fa;
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%,-8px) scale(.97);
+    transition:opacity .16s ease,transform .18s cubic-bezier(.2,.75,.25,1);
+    z-index:1100;
+    text-align:left;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+  .toast.simple{width:auto;max-width:min(86vw,380px);padding:12px 16px;text-align:center;font-size:14px;font-weight:800;letter-spacing:-.02em}
+  .toast-date{font-size:15px;font-weight:850;letter-spacing:-.035em;line-height:1.25}
+  .toast-holiday{margin-top:3px;color:#ff7f89;font-size:11.5px;font-weight:750;line-height:1.25}
+  .toast-duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+  .toast-duty-card{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:11px 12px;border-radius:13px;border:1px solid transparent}
+  .toast-duty-card.primary{background:rgba(222,76,91,.13);border-color:rgba(239,93,108,.36)}
+  .toast-duty-card.secondary{background:rgba(116,128,142,.12);border-color:rgba(154,166,180,.26)}
+  .toast-duty-label{font-size:14px;font-weight:900;letter-spacing:-.03em;white-space:nowrap}
+  .toast-duty-card.primary .toast-duty-label{color:#ff737f}
+  .toast-duty-card.secondary .toast-duty-label{color:#c0c9d3}
+  .toast-duty-team{font-size:19px;font-weight:900;letter-spacing:-.045em;white-space:nowrap}
+  .toast-duty-card.primary .toast-duty-team{color:#fff0f2}
+  .toast-duty-card.secondary .toast-duty-team{color:#f0f3f6}
+  @media (max-height:700px){.toast{top:28dvh}}
 
   /* [재설립] 달력 바깥 메모 버튼에서 여는 개인 일정 편집 오버레이 */
   .personal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:0}
@@ -156,7 +224,12 @@
   .personal-date-input:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   .personal-form{border-top:1px solid var(--line);padding-top:13px}
   .personal-form-title{font-size:13px;font-weight:800;margin-bottom:8px;color:#dbe1e7}
+  .personal-kind{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+  .personal-kind-btn{border:1px solid #303a45;border-radius:10px;background:#0e1318;color:#8995a1;font-size:13px;font-weight:850;padding:9px 8px;cursor:pointer}
+  .personal-kind-btn.active{background:#232c35;color:#f2f5f7;border-color:#465565}
   .personal-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;margin-bottom:8px}
+  .field-group.is-hidden{display:none}
+  .field-group > .personal-field{margin-bottom:8px}
   .personal-field{width:100%;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:14px;outline:none;padding:10px 11px}
   .personal-field:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   textarea.personal-field{min-height:76px;resize:vertical;line-height:1.45;margin-bottom:9px}
@@ -165,6 +238,21 @@
   .personal-cancel{display:none;flex:0 0 auto;border:1px solid #343e49;border-radius:11px;background:#171d24;color:#b5bec8;font-size:13px;font-weight:750;padding:10px 12px;cursor:pointer}
   .personal-cancel.show{display:block}
   body.personal-open .calendar{touch-action:auto}
+
+  .detail-overlay{position:fixed;inset:0;z-index:1250;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .detail-overlay.open{display:flex}
+  .detail-sheet{width:min(100%,720px);max-height:min(78dvh,700px);overflow:auto;background:#11161c;border:1px solid #2b3540;border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 55px rgba(0,0,0,.48);padding-bottom:env(safe-area-inset-bottom)}
+  .detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:15px 16px 12px;border-bottom:1px solid var(--line)}
+  .detail-title{margin:0;font-size:19px;font-weight:900;letter-spacing:-.035em}
+  .detail-shift{margin-top:4px;color:#9aa5b0;font-size:12px;font-weight:750}
+  .detail-body{padding:14px 16px 18px}
+  .detail-kind{font-size:13px;font-weight:900;margin-bottom:11px}
+  .detail-grid{display:grid;grid-template-columns:58px minmax(0,1fr);gap:9px 10px;align-items:start}
+  .detail-label{color:#7f8b97;font-size:12px;font-weight:800;padding-top:1px}
+  .detail-value{color:#eef2f5;font-size:14px;font-weight:750;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  .detail-actions{display:flex;gap:8px;margin-top:16px}
+  .detail-edit{flex:1 1 auto;border:1px solid #49657d;border-radius:11px;background:#1c3447;color:#e8f4ff;font-size:14px;font-weight:850;padding:10px 12px;cursor:pointer}
+  .detail-close{flex:0 0 auto;border:1px solid #343e49;border-radius:11px;background:#171d24;color:#b5bec8;font-size:13px;font-weight:750;padding:10px 14px;cursor:pointer}
 
   @media (min-width:600px){
     .app{padding-left:16px;padding-right:16px}
@@ -175,6 +263,12 @@
     .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
     .holiday-name{font-size:9.5px;min-height:15px;line-height:15px;padding:0}
     .personal-sheet{margin-bottom:0}
+    .view-tab{font-size:12px;padding:7px 10px}
+  }
+  @media (max-width:390px){
+    .view-tab{font-size:10.5px;padding:7px 6px}
+    .monthbar{column-gap:5px}
+    .todaybtn{padding-left:8px;padding-right:8px;font-size:11.5px}
   }
 </style>
 </head>
@@ -195,7 +289,10 @@
   </div>
 
   <div class="monthbar">
-    <div class="monthspacer" aria-hidden="true"></div>
+    <div class="view-switch" role="tablist" aria-label="보기 전환">
+      <button type="button" class="view-tab active" id="workTab" role="tab" aria-selected="true">근무표</button>
+      <button type="button" class="view-tab" id="investigationTab" role="tab" aria-selected="false">조사일정</button>
+    </div>
     <div class="monthcenter">
       <div class="monthtitle" id="monthTitle"></div>
     </div>
@@ -211,7 +308,9 @@
     </div>
   </section>
 
-  <div class="legend" aria-label="근무 표시">
+  <section class="agenda is-hidden" id="agenda" aria-label="조사 일정"></section>
+
+  <div class="legend" id="legend" aria-label="근무 표시">
     <span><i class="dot d1"></i>당</span><span><i class="dot d2"></i>휴</span><span><i class="dot d3"></i>일</span><span><i class="dot d4"></i>비</span>
   </div>
 </main>
@@ -234,16 +333,46 @@
       </div>
       <div class="personal-list" id="personalList"></div>
       <div class="personal-form">
-        <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
-        <div class="personal-row">
-          <input class="personal-field" id="personalTime" type="time" aria-label="시간" />
-          <input class="personal-field" id="personalTitle" type="text" maxlength="80" placeholder="일정 또는 메모 제목" aria-label="제목" />
+        <div class="personal-form-title" id="personalFormTitle">메모 추가</div>
+        <div class="personal-kind" role="group" aria-label="메모 구분">
+          <button type="button" class="personal-kind-btn active" id="kindMemo">📌 메모</button>
+          <button type="button" class="personal-kind-btn" id="kindInvestigation">📠 조사</button>
         </div>
-        <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 (선택)" aria-label="메모"></textarea>
+        <div class="field-group" id="memoFields">
+          <input class="personal-field" id="personalTitle" type="text" maxlength="80" placeholder="메모 제목" aria-label="메모 제목" />
+        </div>
+        <div class="field-group is-hidden" id="investigationFields">
+          <div class="personal-row">
+            <input class="personal-field" id="personalTime" type="time" aria-label="조사 시간" />
+            <input class="personal-field" id="personalPerson" type="text" maxlength="80" placeholder="대상자" aria-label="조사 대상자" />
+          </div>
+          <input class="personal-field" id="personalSubject" type="text" maxlength="120" placeholder="조사 내용" aria-label="조사 내용" />
+        </div>
+        <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 내용 (선택)" aria-label="추가 메모"></textarea>
         <div class="personal-form-actions">
           <button type="button" class="personal-save" id="personalSave">저장</button>
           <button type="button" class="personal-cancel" id="personalCancel">수정 취소</button>
         </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="detail-overlay" id="detailOverlay" aria-hidden="true">
+  <section class="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="detail-head">
+      <div>
+        <h2 class="detail-title" id="detailTitle"></h2>
+        <div class="detail-shift" id="detailShift"></div>
+      </div>
+      <button type="button" class="personal-close" id="detailX" aria-label="닫기">×</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-kind" id="detailKind"></div>
+      <div class="detail-grid" id="detailGrid"></div>
+      <div class="detail-actions">
+        <button type="button" class="detail-edit" id="detailEdit">수정</button>
+        <button type="button" class="detail-close" id="detailClose">닫기</button>
       </div>
     </div>
   </section>
@@ -261,6 +390,10 @@
   const monthTitle = document.getElementById('monthTitle');
   const todayBtn = document.getElementById('todayBtn');
   const toast = document.getElementById('toast');
+  const workTab = document.getElementById('workTab');
+  const investigationTab = document.getElementById('investigationTab');
+  const agenda = document.getElementById('agenda');
+  const legend = document.getElementById('legend');
 
   // [재설립] 달력 바깥 개인 일정 UI 참조
   const personalOverlay = document.getElementById('personalOverlay');
@@ -270,11 +403,26 @@
   const personalClose = document.getElementById('personalClose');
   const personalList = document.getElementById('personalList');
   const personalFormTitle = document.getElementById('personalFormTitle');
+  const kindMemo = document.getElementById('kindMemo');
+  const kindInvestigation = document.getElementById('kindInvestigation');
+  const memoFields = document.getElementById('memoFields');
+  const investigationFields = document.getElementById('investigationFields');
   const personalTime = document.getElementById('personalTime');
   const personalTitle = document.getElementById('personalTitle');
+  const personalPerson = document.getElementById('personalPerson');
+  const personalSubject = document.getElementById('personalSubject');
   const personalMemo = document.getElementById('personalMemo');
   const personalSave = document.getElementById('personalSave');
   const personalCancel = document.getElementById('personalCancel');
+
+  const detailOverlay = document.getElementById('detailOverlay');
+  const detailTitle = document.getElementById('detailTitle');
+  const detailShift = document.getElementById('detailShift');
+  const detailKind = document.getElementById('detailKind');
+  const detailGrid = document.getElementById('detailGrid');
+  const detailEdit = document.getElementById('detailEdit');
+  const detailClose = document.getElementById('detailClose');
+  const detailX = document.getElementById('detailX');
 
   const now = new Date();
   let viewYear = now.getFullYear();
@@ -530,34 +678,112 @@
     return {year:date.getFullYear(),month:date.getMonth()};
   }
 
+  /* [국소 재설립] 주/부 당직 기준점
+     빨강=주, 검정=부로 확인한 2026년 10월 지정표 기준.
+     같은 조는 6일마다 당직, 주/부는 매 당직마다 교대한다. */
+  const DUTY_ROLE_BASE = {
+    '1-7':{key:'2026-10-04',primary:7},
+    '2-8':{key:'2026-10-05',primary:8},
+    '3-9':{key:'2026-10-06',primary:9},
+    '4-10':{key:'2026-10-01',primary:4},
+    '5-11':{key:'2026-10-02',primary:5},
+    '6-12':{key:'2026-10-03',primary:6}
+  };
+
+  function dutyRolesForDate(y,m,d){
+    const teams = dutyTeamsForDate(y,m,d).slice().sort((a,b)=>a-b);
+    if (teams.length !== 2) return {primary:null,secondary:null};
+    const pairKey = `${teams[0]}-${teams[1]}`;
+    const base = DUTY_ROLE_BASE[pairKey];
+    if (!base) return {primary:null,secondary:null};
+    const cycles = Math.trunc((utcDayFromKey(keyOf(y,m,d)) - utcDayFromKey(base.key)) / 6);
+    const primary = mod(cycles,2) === 0 ? base.primary : teams.find(t=>t!==base.primary);
+    const secondary = teams.find(t=>t!==primary) ?? null;
+    return {primary,secondary};
+  }
+
   let toastTimer = null;
-  function showToast(message,duration=1900){
-    toast.textContent = message;
+  function openToast(duration=2300){
     toast.classList.add('show');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(()=>toast.classList.remove('show'),duration);
   }
 
+  function showToast(message,duration=1500){
+    toast.className = 'toast simple';
+    toast.textContent = message;
+    requestAnimationFrame(()=>openToast(duration));
+  }
+
   function showToastForDate(y,m,d){
     const key = keyOf(y,m,d);
     const holiday = holidayForKey(key);
-    const dutyTeams = dutyTeamsForDate(y,m,d);
-    const parts = [`${m+1}월 ${d}일`];
-    if (holiday) parts.push(holiday.name);
-    if (dutyTeams.length) parts.push(`당직 ${dutyTeams.map(t=>`${t}팀`).join(' · ')}`);
-    else parts.push('당직 정보 없음');
-    showToast(parts.join(' · '));
+    const roles = dutyRolesForDate(y,m,d);
+    const weekday = ['일','월','화','수','목','금','토'][new Date(y,m,d).getDay()];
+
+    toast.className = 'toast';
+    toast.innerHTML = '';
+
+    const dateLine = document.createElement('div');
+    dateLine.className = 'toast-date';
+    dateLine.textContent = `${m+1}월 ${d}일 ${weekday}요일`;
+    toast.appendChild(dateLine);
+
+    if (holiday){
+      const holidayLine = document.createElement('div');
+      holidayLine.className = 'toast-holiday';
+      holidayLine.textContent = holiday.name;
+      toast.appendChild(holidayLine);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'toast-duty-grid';
+
+    const primaryCard = document.createElement('div');
+    primaryCard.className = 'toast-duty-card primary';
+    const primaryLabel = document.createElement('span');
+    primaryLabel.className = 'toast-duty-label';
+    primaryLabel.textContent = '주 :';
+    const primaryTeam = document.createElement('strong');
+    primaryTeam.className = 'toast-duty-team';
+    primaryTeam.textContent = roles.primary ? `${roles.primary}팀` : '-';
+    primaryCard.append(primaryLabel,primaryTeam);
+
+    const secondaryCard = document.createElement('div');
+    secondaryCard.className = 'toast-duty-card secondary';
+    const secondaryLabel = document.createElement('span');
+    secondaryLabel.className = 'toast-duty-label';
+    secondaryLabel.textContent = '부 :';
+    const secondaryTeam = document.createElement('strong');
+    secondaryTeam.className = 'toast-duty-team';
+    secondaryTeam.textContent = roles.secondary ? `${roles.secondary}팀` : '-';
+    secondaryCard.append(secondaryLabel,secondaryTeam);
+
+    grid.append(primaryCard,secondaryCard);
+    toast.appendChild(grid);
+    requestAnimationFrame(()=>openToast(2500));
   }
 
   /* =========================================================
-     [국소 제거 및 재설립] 개인 일정 저장소
-     - 근무표/공휴일 엔진과 데이터 완전 분리
-     - 같은 주소를 쓰더라도 각 브라우저 localStorage에만 저장
+     [국소 제거 및 재설립] 공통 메모 저장소
+     - 메모/조사를 같은 저장소에서 kind로만 구분
+     - 기존 v1 데이터는 자동으로 📌 메모로 승격
+     - 근무표와 조사일정은 같은 데이터를 서로 다른 방식으로 보여줌
      ========================================================= */
   const PERSONAL_STORAGE_KEY = 'tongsu_personal_schedule_v1';
+  let currentView = 'work';
+  let activePersonalKind = 'memo';
+  let activePersonalDateKey = null;
+  let editingPersonalId = null;
+  let detailDateKey = null;
+  let detailItemId = null;
 
   function freshPersonalStore(){
-    return {schema:1,updatedAt:null,dates:{}};
+    return {schema:2,updatedAt:null,dates:{}};
+  }
+
+  function makePersonalId(){
+    return `P${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
   }
 
   function normalizePersonalStore(value){
@@ -566,17 +792,26 @@
     const cleanDates = {};
     for (const [key,list] of Object.entries(dates)){
       if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(list)) continue;
-      const clean = list.filter(item=>item && typeof item === 'object').map(item=>({
-        id:String(item.id || makePersonalId()),
-        time:typeof item.time === 'string' ? item.time.slice(0,5) : '',
-        title:typeof item.title === 'string' ? item.title.slice(0,80) : '',
-        memo:typeof item.memo === 'string' ? item.memo.slice(0,1000) : '',
-        createdAt:typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
-        updatedAt:typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
-      })).filter(item=>item.title.trim() || item.memo.trim());
+      const clean = list.filter(item=>item && typeof item === 'object').map(item=>{
+        const kind = item.kind === 'investigation' ? 'investigation' : 'memo';
+        return {
+          id:String(item.id || makePersonalId()),
+          kind,
+          time:typeof item.time === 'string' ? item.time.slice(0,5) : '',
+          title:typeof item.title === 'string' ? item.title.slice(0,80) : '',
+          person:typeof item.person === 'string' ? item.person.slice(0,80) : '',
+          subject:typeof item.subject === 'string' ? item.subject.slice(0,120) : '',
+          memo:typeof item.memo === 'string' ? item.memo.slice(0,1000) : '',
+          createdAt:typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+          updatedAt:typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
+        };
+      }).filter(item=>{
+        if (item.kind === 'investigation') return item.time || item.person.trim() || item.subject.trim() || item.memo.trim();
+        return item.title.trim() || item.memo.trim();
+      });
       if (clean.length) cleanDates[key] = clean;
     }
-    return {schema:1,updatedAt:value.updatedAt || null,dates:cleanDates};
+    return {schema:2,updatedAt:value.updatedAt || null,dates:cleanDates};
   }
 
   function loadPersonalStore(){
@@ -591,17 +826,17 @@
   let personalStore = loadPersonalStore();
 
   function savePersonalStore(){
+    personalStore.schema = 2;
     personalStore.updatedAt = new Date().toISOString();
     localStorage.setItem(PERSONAL_STORAGE_KEY,JSON.stringify(personalStore));
-  }
-
-  function makePersonalId(){
-    return `P${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
   }
 
   function personalItemsForKey(key){
     const source = Array.isArray(personalStore.dates[key]) ? personalStore.dates[key] : [];
     return source.slice().sort((a,b)=>{
+      const ak = a.kind === 'investigation' ? 0 : 1;
+      const bk = b.kind === 'investigation' ? 0 : 1;
+      if (ak !== bk) return ak - bk;
       const at = a.time || '99:99';
       const bt = b.time || '99:99';
       if (at !== bt) return at.localeCompare(bt);
@@ -610,14 +845,14 @@
   }
 
   function personalDisplayText(item){
+    if (item.kind === 'investigation'){
+      return String(item.person || item.subject || item.memo || '조사').trim();
+    }
     const title = String(item.title || '').trim();
     if (title) return title;
     const memo = String(item.memo || '').trim().replace(/\s+/g,' ');
     return memo || '메모';
   }
-
-  let activePersonalDateKey = null;
-  let editingPersonalId = null;
 
   function parseKey(key){
     const [y,m,d] = key.split('-').map(Number);
@@ -628,14 +863,58 @@
     return ['일','월','화','수','목','금','토'][date.getDay()];
   }
 
+  function selectedTeamShiftLabel(y,m,d){
+    const shift = shiftForDate(selectedTeam,y,m,d);
+    if (shift !== '당') return shift || '-';
+    const roles = dutyRolesForDate(y,m,d);
+    if (roles.primary === selectedTeam) return '주당직';
+    if (roles.secondary === selectedTeam) return '부당직';
+    return '당직';
+  }
+
+  function shiftChipClass(label){
+    if (label === '주당직') return 'duty-primary';
+    if (label === '부당직') return 'duty-secondary';
+    return '';
+  }
+
+  function setView(next){
+    currentView = next === 'agenda' ? 'agenda' : 'work';
+    const work = currentView === 'work';
+    calendar.classList.toggle('is-hidden',!work);
+    agenda.classList.toggle('is-hidden',work);
+    legend.classList.toggle('is-hidden',!work);
+    workTab.classList.toggle('active',work);
+    investigationTab.classList.toggle('active',!work);
+    workTab.setAttribute('aria-selected',work ? 'true' : 'false');
+    investigationTab.setAttribute('aria-selected',work ? 'false' : 'true');
+    if (!work) renderAgenda();
+    else requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
+  }
+
+  function setPersonalKind(kind){
+    activePersonalKind = kind === 'investigation' ? 'investigation' : 'memo';
+    const isInvestigation = activePersonalKind === 'investigation';
+    kindMemo.classList.toggle('active',!isInvestigation);
+    kindInvestigation.classList.toggle('active',isInvestigation);
+    memoFields.classList.toggle('is-hidden',isInvestigation);
+    investigationFields.classList.toggle('is-hidden',!isInvestigation);
+    personalFormTitle.textContent = editingPersonalId
+      ? (isInvestigation ? '조사 수정' : '메모 수정')
+      : (isInvestigation ? '조사 추가' : '메모 추가');
+    personalMemo.placeholder = isInvestigation ? '추가 메모 (선택)' : '메모 내용 (선택)';
+  }
+
   function resetPersonalForm(){
     editingPersonalId = null;
     personalTime.value = '';
     personalTitle.value = '';
+    personalPerson.value = '';
+    personalSubject.value = '';
     personalMemo.value = '';
-    personalFormTitle.textContent = '일정 추가';
     personalSave.textContent = '저장';
     personalCancel.classList.remove('show');
+    setPersonalKind('memo');
   }
 
   function renderPersonalList(){
@@ -645,7 +924,7 @@
     if (!items.length){
       const empty = document.createElement('div');
       empty.className = 'personal-list-empty';
-      empty.textContent = '등록된 개인 일정이 없습니다.';
+      empty.textContent = '등록된 메모나 조사 일정이 없습니다.';
       personalList.appendChild(empty);
       return;
     }
@@ -662,19 +941,29 @@
 
       const title = document.createElement('div');
       title.className = 'personal-card-title';
-      if (item.time){
+
+      const emoji = document.createElement('span');
+      emoji.textContent = item.kind === 'investigation' ? '📠' : '📌';
+      emoji.style.marginRight = '6px';
+      title.appendChild(emoji);
+
+      if (item.kind === 'investigation' && item.time){
         const time = document.createElement('span');
         time.className = 'personal-card-time';
         time.textContent = item.time;
         title.appendChild(time);
       }
+
       title.appendChild(document.createTextNode(personalDisplayText(item)));
       main.appendChild(title);
 
-      if (item.memo && item.memo.trim()){
+      const subText = item.kind === 'investigation'
+        ? [item.subject,item.memo].filter(Boolean).join(' · ')
+        : item.memo;
+      if (subText && subText.trim()){
         const memo = document.createElement('div');
         memo.className = 'personal-card-memo';
-        memo.textContent = item.memo.trim();
+        memo.textContent = subText.trim();
         main.appendChild(memo);
       }
 
@@ -706,11 +995,10 @@
     personalDateInput.value = activePersonalDateKey;
     personalDateTitle.textContent = `${y}년 ${m}월 ${d}일 (${weekdayKo(date)})`;
     const holiday = holidayForKey(activePersonalDateKey);
-    const dutyTeams = dutyTeamsForDate(y,m-1,d);
-    const info = [];
+    const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
+    const info = [`${selectedTeam}팀 · ${shiftLabel}`];
     if (holiday) info.push(holiday.name);
-    if (dutyTeams.length) info.push(`당직 ${dutyTeams.map(t=>`${t}팀`).join(' · ')}`);
-    personalDutyInfo.textContent = info.length ? info.join(' · ') : '개인 일정';
+    personalDutyInfo.textContent = info.join(' · ');
     renderPersonalList();
   }
 
@@ -746,16 +1034,19 @@
     editingPersonalId = id;
     personalTime.value = item.time || '';
     personalTitle.value = item.title || '';
+    personalPerson.value = item.person || '';
+    personalSubject.value = item.subject || '';
     personalMemo.value = item.memo || '';
-    personalFormTitle.textContent = '일정 수정';
+    setPersonalKind(item.kind);
     personalSave.textContent = '수정 저장';
     personalCancel.classList.add('show');
-    personalTitle.focus({preventScroll:false});
+    const target = item.kind === 'investigation' ? personalPerson : personalTitle;
+    target.focus({preventScroll:false});
   }
 
   function deletePersonalItem(id){
     if (!activePersonalDateKey) return;
-    if (!confirm('이 개인 일정을 삭제할까요?')) return;
+    if (!confirm('이 항목을 삭제할까요?')) return;
     const list = personalStore.dates[activePersonalDateKey] || [];
     personalStore.dates[activePersonalDateKey] = list.filter(item=>item.id!==id);
     if (!personalStore.dates[activePersonalDateKey].length) delete personalStore.dates[activePersonalDateKey];
@@ -763,16 +1054,27 @@
     if (editingPersonalId===id) resetPersonalForm();
     renderPersonalList();
     buildMonthTrack();
-    showToast('개인 일정을 삭제했습니다.',1300);
+    renderAgenda();
+    showToast('삭제했습니다.',1200);
   }
 
   function savePersonalItem(){
     if (!activePersonalDateKey) return;
+    const kind = activePersonalKind;
     const time = personalTime.value.trim();
     const title = personalTitle.value.trim();
+    const person = personalPerson.value.trim();
+    const subject = personalSubject.value.trim();
     const memo = personalMemo.value.trim();
-    if (!title && !memo){
-      showToast('일정 또는 메모 내용을 입력하세요.',1600);
+
+    if (kind === 'investigation'){
+      if (!person && !subject && !memo){
+        showToast('대상자나 조사 내용을 입력하세요.',1600);
+        personalPerson.focus();
+        return;
+      }
+    }else if (!title && !memo){
+      showToast('메모 내용을 입력하세요.',1600);
       personalTitle.focus();
       return;
     }
@@ -783,23 +1085,176 @@
     if (editingPersonalId){
       const item = list.find(x=>x.id===editingPersonalId);
       if (item){
-        item.time = time;
-        item.title = title;
+        item.kind = kind;
+        item.time = kind === 'investigation' ? time : '';
+        item.title = kind === 'memo' ? title : '';
+        item.person = kind === 'investigation' ? person : '';
+        item.subject = kind === 'investigation' ? subject : '';
         item.memo = memo;
         item.updatedAt = nowIso;
       }
     }else{
-      list.push({id:makePersonalId(),time,title,memo,createdAt:nowIso,updatedAt:nowIso});
+      list.push({
+        id:makePersonalId(),
+        kind,
+        time:kind === 'investigation' ? time : '',
+        title:kind === 'memo' ? title : '',
+        person:kind === 'investigation' ? person : '',
+        subject:kind === 'investigation' ? subject : '',
+        memo,
+        createdAt:nowIso,
+        updatedAt:nowIso
+      });
     }
     personalStore.dates[activePersonalDateKey] = list;
     savePersonalStore();
     resetPersonalForm();
     renderPersonalList();
     buildMonthTrack();
-    showToast(wasEditing ? '개인 일정을 수정했습니다.' : '개인 일정을 저장했습니다.',1300);
+    renderAgenda();
+    showToast(wasEditing ? '수정했습니다.' : '저장했습니다.',1200);
+  }
+
+  function addDetailRow(label,value){
+    if (!value) return;
+    const l = document.createElement('div');
+    l.className = 'detail-label';
+    l.textContent = label;
+    const v = document.createElement('div');
+    v.className = 'detail-value';
+    v.textContent = value;
+    detailGrid.append(l,v);
+  }
+
+  function openDetail(key,itemId){
+    const item = (personalStore.dates[key] || []).find(x=>x.id===itemId);
+    if (!item) return;
+    detailDateKey = key;
+    detailItemId = itemId;
+    const {y,m,d,date} = parseKey(key);
+    detailTitle.textContent = `${m}월 ${d}일 (${weekdayKo(date)})`;
+    const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
+    const holiday = holidayForKey(key);
+    detailShift.textContent = `${selectedTeam}팀 · ${shiftLabel}${holiday ? ` · ${holiday.name}` : ''}`;
+    detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '📌 메모';
+    detailGrid.innerHTML = '';
+    if (item.kind === 'investigation'){
+      addDetailRow('시간',item.time || '시간 미정');
+      addDetailRow('대상자',item.person || '대상 미정');
+      addDetailRow('내용',item.subject || '');
+      addDetailRow('메모',item.memo || '');
+    }else{
+      addDetailRow('제목',item.title || '메모');
+      addDetailRow('내용',item.memo || '');
+    }
+    detailOverlay.classList.add('open');
+    detailOverlay.setAttribute('aria-hidden','false');
+  }
+
+  function closeDetail(){
+    detailOverlay.classList.remove('open');
+    detailOverlay.setAttribute('aria-hidden','true');
+    detailDateKey = null;
+    detailItemId = null;
+  }
+
+  function renderAgenda(){
+    if (!agenda) return;
+    agenda.innerHTML = '';
+    const prefix = `${viewYear}-${pad(viewMonth+1)}-`;
+    const keys = Object.keys(personalStore.dates)
+      .filter(key=>key.startsWith(prefix))
+      .filter(key=>personalItemsForKey(key).length)
+      .sort();
+
+    if (!keys.length){
+      const empty = document.createElement('div');
+      empty.className = 'agenda-empty';
+      empty.textContent = '이 달에 등록된 조사 일정이나 메모가 없습니다.';
+      agenda.appendChild(empty);
+      return;
+    }
+
+    for (const key of keys){
+      const items = personalItemsForKey(key);
+      const {y,m,d,date} = parseKey(key);
+      const day = document.createElement('section');
+      day.className = 'agenda-day';
+
+      const head = document.createElement('div');
+      head.className = 'agenda-day-head';
+
+      const dateText = document.createElement('div');
+      dateText.className = 'agenda-day-date';
+      dateText.textContent = `${m}/${d} ${weekdayKo(date)}`;
+
+      const shift = document.createElement('div');
+      const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
+      shift.className = `agenda-shift ${shiftChipClass(shiftLabel)}`;
+      shift.textContent = shiftLabel;
+
+      head.append(dateText,shift);
+
+      const list = document.createElement('div');
+      list.className = 'agenda-items';
+
+      for (const item of items){
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `agenda-item ${item.kind === 'investigation' ? 'investigation' : 'memo'}`;
+
+        const main = document.createElement('div');
+        main.className = 'agenda-item-main';
+
+        const emoji = document.createElement('span');
+        emoji.className = 'agenda-emoji';
+        emoji.textContent = item.kind === 'investigation' ? '📠' : '📌';
+        main.appendChild(emoji);
+
+        if (item.kind === 'investigation'){
+          const time = document.createElement('span');
+          time.className = 'agenda-time';
+          time.textContent = item.time || '미정';
+          const person = document.createElement('span');
+          person.className = 'agenda-person';
+          person.textContent = item.person || '대상 미정';
+          main.append(time,person);
+          button.appendChild(main);
+
+          const subText = item.subject || item.memo;
+          if (subText){
+            const sub = document.createElement('div');
+            sub.className = 'agenda-sub';
+            sub.textContent = subText;
+            button.appendChild(sub);
+          }
+        }else{
+          const person = document.createElement('span');
+          person.className = 'agenda-person';
+          person.textContent = personalDisplayText(item);
+          main.appendChild(person);
+          button.appendChild(main);
+          if (item.memo && item.title){
+            const sub = document.createElement('div');
+            sub.className = 'agenda-sub';
+            sub.textContent = item.memo;
+            button.appendChild(sub);
+          }
+        }
+
+        button.addEventListener('click',()=>openDetail(key,item.id));
+        list.appendChild(button);
+      }
+
+      day.append(head,list);
+      agenda.appendChild(day);
+    }
   }
 
   memoBtn.addEventListener('click',()=>openPersonalEditor());
+  kindMemo.addEventListener('click',()=>setPersonalKind('memo'));
+  kindInvestigation.addEventListener('click',()=>setPersonalKind('investigation'));
+
   personalDateInput.addEventListener('change',()=>{
     const key = personalDateInput.value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return;
@@ -814,9 +1269,46 @@
   });
   personalSave.addEventListener('click',savePersonalItem);
   personalCancel.addEventListener('click',resetPersonalForm);
-  window.addEventListener('keydown',e=>{
-    if (e.key==='Escape' && personalOverlay.classList.contains('open')) closePersonalEditor();
+
+  detailClose.addEventListener('click',closeDetail);
+  detailX.addEventListener('click',closeDetail);
+  detailOverlay.addEventListener('click',e=>{
+    if (e.target===detailOverlay) closeDetail();
   });
+  detailEdit.addEventListener('click',()=>{
+    if (!detailDateKey || !detailItemId) return;
+    const key = detailDateKey;
+    const id = detailItemId;
+    closeDetail();
+    openPersonalEditor(key);
+    startPersonalEdit(id);
+  });
+
+  workTab.addEventListener('click',()=>setView('work'));
+  investigationTab.addEventListener('click',()=>setView('agenda'));
+
+  window.addEventListener('keydown',e=>{
+    if (e.key!=='Escape') return;
+    if (detailOverlay.classList.contains('open')) closeDetail();
+    else if (personalOverlay.classList.contains('open')) closePersonalEditor();
+  });
+
+  // 조사일정은 세로 스크롤을 유지하고, 좌우 스와이프로 월 이동.
+  let agendaSwipeStart = null;
+  agenda.addEventListener('touchstart',e=>{
+    if (e.touches.length!==1) return;
+    agendaSwipeStart = {x:e.touches[0].clientX,y:e.touches[0].clientY};
+  },{passive:true});
+  agenda.addEventListener('touchend',e=>{
+    if (!agendaSwipeStart || !e.changedTouches.length) return;
+    const dx = e.changedTouches[0].clientX - agendaSwipeStart.x;
+    const dy = e.changedTouches[0].clientY - agendaSwipeStart.y;
+    agendaSwipeStart = null;
+    if (Math.abs(dx) < 58 || Math.abs(dx) <= Math.abs(dy)) return;
+    applyMonthDelta(dx < 0 ? 1 : -1);
+    buildMonthTrack();
+    agenda.scrollTop = 0;
+  },{passive:true});
 
   let suppressTapUntil = 0;
 
@@ -873,12 +1365,29 @@
       h.textContent = holiday ? holiday.label : '';
       cell.appendChild(h);
 
-      // 개인 일정이 있는 날짜에는 조작부 대신 작은 표시점만 둔다.
-      if (personalItemsForKey(key).length){
-        const mark = document.createElement('span');
-        mark.className = 'personal-mark';
-        mark.setAttribute('aria-label','개인 일정 있음');
-        numRow.appendChild(mark);
+      // [국소 재설립] 셀 공간은 늘리지 않고, 존재 여부만 이모지로 표시.
+      // 조사=📠, 일반 메모=📌
+      const dayItems = personalItemsForKey(key);
+      if (dayItems.length){
+        const hasInvestigation = dayItems.some(item=>item.kind==='investigation');
+        const hasMemo = dayItems.some(item=>item.kind!=='investigation');
+        const flags = document.createElement('div');
+        flags.className = 'day-flags';
+        if (hasInvestigation){
+          const flag = document.createElement('span');
+          flag.className = 'day-flag';
+          flag.textContent = '📠';
+          flag.setAttribute('aria-label','조사 일정 있음');
+          flags.appendChild(flag);
+        }
+        if (hasMemo){
+          const flag = document.createElement('span');
+          flag.className = 'day-flag';
+          flag.textContent = '📌';
+          flag.setAttribute('aria-label','메모 있음');
+          flags.appendChild(flag);
+        }
+        cell.appendChild(flags);
       }
 
       // 기존 동작 유지: 개인 일정 영역이 아닌 날짜 셀 탭은 당직 토스트.
@@ -918,7 +1427,10 @@
     monthTrack.appendChild(createMonthPage(viewYear,viewMonth));
     monthTrack.appendChild(createMonthPage(next.year,next.month));
     updateHeader();
-    requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
+    renderAgenda();
+    if (currentView === 'work'){
+      requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
+    }
   }
 
   function applyMonthDelta(delta){
@@ -1033,6 +1545,10 @@
     selectedTeam = Number(teamSelect.value);
     localStorage.setItem('tongsu_team',String(selectedTeam));
     buildMonthTrack();
+    if (personalOverlay.classList.contains('open')) refreshPersonalDateContext();
+    if (detailOverlay.classList.contains('open') && detailDateKey && detailItemId){
+      openDetail(detailDateKey,detailItemId);
+    }
   });
 
   todayBtn.addEventListener('click',()=>{
@@ -1051,6 +1567,7 @@
   });
 
   buildMonthTrack();
+  setView('work');
 })();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
