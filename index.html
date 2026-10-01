@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261001-duty-popup-v7" />
+<meta name="tongsu-build" content="20261002-ios-persistent-touch-guard-v9" />
 <style>
   :root{
     color-scheme:dark;
@@ -27,6 +27,38 @@
     --personal-muted:#8d9aa8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+  /* [국소 제거·재설립] iOS 터치 정책 v9
+     - 페이지/오버레이가 다시 그려져도 더블탭 확대 방지 정책이 바뀌지 않는다.
+     - pan/scroll/pinch는 유지하고, 앱 조작부의 double-tap zoom만 제거한다. */
+  html,
+  body,
+  .app,
+  .personal-overlay,
+  .detail-overlay,
+  .duty-popup{
+    touch-action:manipulation;
+  }
+  button,
+  select,
+  .view-tab,
+  .memo-btn,
+  .todaybtn,
+  .day,
+  .agenda-item,
+  .duty-popup-close,
+  .personal-close,
+  .personal-mini-btn,
+  .personal-kind-btn,
+  .personal-save,
+  .personal-cancel,
+  .detail-edit,
+  .detail-close{
+    touch-action:manipulation;
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+  }
   html,body{
     margin:0;
     width:100%;
@@ -208,7 +240,7 @@
   .personal-mini-btn.delete{color:#e0949a}
   .personal-date-control{display:grid;grid-template-columns:46px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:13px}
   .personal-date-label{color:#aab4bf;font-size:13px;font-weight:800}
-  .personal-date-input{width:100%;min-height:42px;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:14px;font-weight:700;outline:none;padding:9px 11px;color-scheme:dark}
+  .personal-date-input{width:100%;min-height:42px;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:16px;font-weight:700;outline:none;padding:9px 11px;color-scheme:dark}
   .personal-date-input:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   .personal-form{border-top:1px solid var(--line);padding-top:13px}
   .personal-form-title{font-size:13px;font-weight:800;margin-bottom:8px;color:#dbe1e7}
@@ -218,14 +250,13 @@
   .personal-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;margin-bottom:8px}
   .field-group.is-hidden{display:none}
   .field-group > .personal-field{margin-bottom:8px}
-  .personal-field{width:100%;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:14px;outline:none;padding:10px 11px}
+  .personal-field{width:100%;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:16px;outline:none;padding:10px 11px}
   .personal-field:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   textarea.personal-field{min-height:76px;resize:vertical;line-height:1.45;margin-bottom:9px}
   .personal-form-actions{display:flex;gap:8px}
   .personal-save{flex:1 1 auto;border:1px solid #49657d;border-radius:11px;background:#1c3447;color:#e8f4ff;font-size:14px;font-weight:850;padding:10px 12px;cursor:pointer}
   .personal-cancel{display:none;flex:0 0 auto;border:1px solid #343e49;border-radius:11px;background:#171d24;color:#b5bec8;font-size:13px;font-weight:750;padding:10px 12px;cursor:pointer}
   .personal-cancel.show{display:block}
-  body.personal-open .calendar{touch-action:auto}
 
   .detail-overlay{position:fixed;inset:0;z-index:1250;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
   .detail-overlay.open{display:flex}
@@ -1559,6 +1590,109 @@
       if (!gesture.active && !animating) setTrackY(-viewportHeight(),false);
     },80);
   });
+
+  /* [국소 제거·재설립] iOS persistent touch guard v9
+     DOM/오버레이/메모 상태와 무관하게 페이지 생명주기 동안 한 번만 유지되는 전역 탭 상태.
+     같은 요소인지 보지 않고 시간+화면 좌표로 두 번째 빠른 탭을 판정한다. */
+  const TOUCH_GUARD_ACTION_SELECTOR = [
+    'button',
+    '.view-tab',
+    '.memo-btn',
+    '.todaybtn',
+    '.day',
+    '.agenda-item',
+    '.duty-popup-close',
+    '.personal-close',
+    '.personal-mini-btn',
+    '.personal-kind-btn',
+    '.personal-save',
+    '.personal-cancel',
+    '.detail-edit',
+    '.detail-close'
+  ].join(',');
+  const TOUCH_GUARD_INPUT_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
+  const TOUCH_GUARD_MAX_MS = 380;
+  const TOUCH_GUARD_MAX_PX = 44;
+  const TOUCH_GUARD_MOVE_PX = 10;
+
+  const touchGuard = window.__TONGSU_TOUCH_GUARD__ || (window.__TONGSU_TOUCH_GUARD__ = {
+    lastTapAt:0,
+    lastX:0,
+    lastY:0,
+    active:null
+  });
+
+  document.addEventListener('touchstart',e=>{
+    if (e.touches.length !== 1){
+      touchGuard.active = null;
+      return;
+    }
+    const t = e.touches[0];
+    touchGuard.active = {
+      id:t.identifier,
+      startX:t.clientX,
+      startY:t.clientY,
+      moved:false
+    };
+  },{capture:true,passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    const active = touchGuard.active;
+    if (!active || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    if (t.identifier !== active.id) return;
+    if (Math.abs(t.clientX - active.startX) > TOUCH_GUARD_MOVE_PX ||
+        Math.abs(t.clientY - active.startY) > TOUCH_GUARD_MOVE_PX){
+      active.moved = true;
+    }
+  },{capture:true,passive:true});
+
+  document.addEventListener('touchcancel',()=>{
+    touchGuard.active = null;
+  },{capture:true,passive:true});
+
+  document.addEventListener('touchend',e=>{
+    const active = touchGuard.active;
+    touchGuard.active = null;
+    if (!active || active.moved || e.changedTouches.length !== 1) return;
+
+    const rawTarget = e.target instanceof Element ? e.target : null;
+    if (!rawTarget) return;
+
+    // 입력창은 텍스트 선택/커서 동작을 보존한다. 입력 포커스 자동 확대는 CSS 16px로 따로 제거했다.
+    if (rawTarget.closest(TOUCH_GUARD_INPUT_SELECTOR)){
+      touchGuard.lastTapAt = 0;
+      return;
+    }
+
+    const t = e.changedTouches[0];
+    const nowAt = performance.now();
+    const dt = nowAt - touchGuard.lastTapAt;
+    const dx = t.clientX - touchGuard.lastX;
+    const dy = t.clientY - touchGuard.lastY;
+    const nearPreviousTap = Math.hypot(dx,dy) <= TOUCH_GUARD_MAX_PX;
+    const isSecondFastTap = touchGuard.lastTapAt > 0 && dt > 0 && dt <= TOUCH_GUARD_MAX_MS && nearPreviousTap;
+
+    touchGuard.lastTapAt = nowAt;
+    touchGuard.lastX = t.clientX;
+    touchGuard.lastY = t.clientY;
+
+    if (!isSecondFastTap) return;
+
+    // Safari가 두 번째 탭을 페이지 확대 제스처로 가져가는 기본 동작만 차단한다.
+    e.preventDefault();
+
+    // preventDefault로 사라지는 두 번째 synthetic click은 앱 조작부에 한해 직접 1회 실행한다.
+    // DOM이 첫 탭 뒤 교체됐더라도 현재 좌표의 현재 요소를 기준으로 동작하므로 상태가 끊기지 않는다.
+    const action = rawTarget.closest(TOUCH_GUARD_ACTION_SELECTOR);
+    if (action && !action.matches(':disabled')) action.click();
+  },{capture:true,passive:false});
+
+  // 일부 WebKit 경로에서 dblclick까지 생성되는 경우의 마지막 방어선.
+  document.addEventListener('dblclick',e=>{
+    const target = e.target instanceof Element ? e.target : null;
+    if (target && !target.closest(TOUCH_GUARD_INPUT_SELECTOR)) e.preventDefault();
+  },{capture:true,passive:false});
 
   buildMonthTrack();
   setView('work');
