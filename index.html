@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261001-personal-single-v3" />
+<meta name="tongsu-build" content="20261001-personal-external-v4" />
 <style>
   :root{
     color-scheme:dark;
@@ -55,6 +55,9 @@
   }
   .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
   h1{font-size:23px;line-height:1.15;margin:0;font-weight:800;letter-spacing:-.04em}
+  .top-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+  .memo-btn{height:42px;min-width:64px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);font-size:16px;font-weight:750;cursor:pointer}
+  .memo-btn:active{background:#202832}
   .team-wrap{position:relative;min-width:82px}
   select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:14px;color:var(--text);font-size:16px;font-weight:750;padding:9px 30px 9px 12px;outline:none}
   .team-wrap:after{content:"▼";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:18px;font-weight:700;line-height:1}
@@ -101,38 +104,32 @@
   .month-page{height:33.333333%;width:100%;overflow:hidden}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,minmax(0,1fr));height:100%;width:100%}
 
-  /* [재설립] 기존 날짜/근무/공휴일 3단 구조 아래에 개인일정 전용 4번째 행을 독립 배치 */
-  .day{min-height:0;padding:2px 3px 2px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:grid;grid-template-rows:22px 26px 12px minmax(0,1fr);align-content:start;cursor:pointer;user-select:none;overflow:hidden}
+  /* [국소 재설립] 달력 셀은 원래의 날짜/근무/공휴일 3단 구조로 복원. 개인 메모 조작부는 셀 안에 두지 않는다. */
+  .day{min-height:0;padding:3px 4px 2px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:grid;grid-template-rows:24px 29px 13px;align-content:start;cursor:pointer;user-select:none}
   .day:nth-child(7n){border-right:0}
   .day:nth-last-child(-n+7){border-bottom:0}
   .day.other{opacity:.34;background:#0d1116}
   .day.today{background:#192029;box-shadow:inset 0 0 0 2px rgba(244,246,248,.9)}
-  .daynumrow{min-height:22px;display:flex;align-items:center}
-  .daynum{display:inline-flex;align-items:center;justify-content:flex-start;min-width:25px;height:22px;font-size:13.5px;font-weight:750;line-height:1;color:#e8ebef}
+  .daynumrow{min-height:24px;display:flex;align-items:center;gap:4px}
+  .daynum{display:inline-flex;align-items:center;justify-content:flex-start;min-width:26px;height:24px;font-size:14px;font-weight:750;line-height:1;color:#e8ebef}
   .day.sun .daynum{color:var(--sun)}
   .day.sat .daynum{color:var(--sat)}
   .day.holiday:not(.sat) .daynum{color:var(--sun)}
-  .shift{display:flex;justify-content:center;align-items:center;min-height:26px;margin-top:0}
-  .badge{min-width:32px;height:25px;padding:0 6px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15.5px;border:1px solid transparent;background:transparent}
+  .shift{display:flex;justify-content:center;align-items:center;min-height:29px;margin-top:0}
+  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;border:1px solid transparent;background:transparent}
   .badge.duty{color:rgba(255,159,67,.82);background:transparent;border-color:transparent}
   .badge.rest{color:rgba(255,94,126,.80);background:transparent;border-color:transparent}
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
   .badge.off{color:rgba(213,106,114,.82);background:transparent;border-color:transparent}
-  .holiday-name{margin:0;min-height:12px;padding:0;text-align:center;color:var(--sun);font-size:8px;font-weight:700;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-  /* [재설립] 개인 일정 표시 레이어. 이 영역의 탭만 일정 편집기를 열며 기존 셀 탭 토스트는 그대로 유지. */
-  .personal-slot{min-width:0;min-height:0;overflow:hidden;border-top:1px solid rgba(137,147,159,.15);padding:2px 1px 0;display:flex;flex-direction:column;justify-content:flex-start;gap:0;cursor:pointer}
-  .personal-empty{height:100%;min-height:16px;display:flex;align-items:center;justify-content:center;color:#7f8c99;font-size:9.5px;font-weight:750;line-height:1;opacity:.95;letter-spacing:-.03em}
-  .personal-line{min-width:0;color:var(--personal);font-size:8.5px;font-weight:650;line-height:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
-  .personal-time{color:var(--personal-muted);font-variant-numeric:tabular-nums;margin-right:2px}
-  .personal-more{color:#738292;font-size:8px;font-weight:750;line-height:10px;white-space:nowrap;text-align:right;padding-right:1px}
+  .holiday-name{margin:0;min-height:13px;padding:0;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .personal-mark{width:5px;height:5px;border-radius:50%;background:#9aa8b6;box-shadow:0 0 0 1px rgba(154,168,182,.18);flex:0 0 auto}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
   .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 15px;border-radius:13px;background:rgba(30,36,44,.96);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 30px rgba(0,0,0,.34);color:#fff;font-size:13px;font-weight:700;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:1000;text-align:center;white-space:nowrap}
   .toast.show{opacity:1;transform:translate(-50%,0)}
 
-  /* [재설립] 개인 일정 편집 오버레이 */
+  /* [재설립] 달력 바깥 메모 버튼에서 여는 개인 일정 편집 오버레이 */
   .personal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:0}
   .personal-overlay.open{display:flex}
   .personal-sheet{width:min(100%,720px);max-height:min(82dvh,760px);background:#11161c;border:1px solid #2b3540;border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 55px rgba(0,0,0,.48);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
@@ -153,6 +150,10 @@
   .personal-card-actions{flex:0 0 auto;display:flex;gap:5px}
   .personal-mini-btn{border:1px solid #303b47;border-radius:9px;background:#1a2129;color:#cdd5dd;font-size:11px;font-weight:750;padding:6px 8px;cursor:pointer}
   .personal-mini-btn.delete{color:#e0949a}
+  .personal-date-control{display:grid;grid-template-columns:46px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:13px}
+  .personal-date-label{color:#aab4bf;font-size:13px;font-weight:800}
+  .personal-date-input{width:100%;min-height:42px;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:14px;font-weight:700;outline:none;padding:9px 11px;color-scheme:dark}
+  .personal-date-input:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   .personal-form{border-top:1px solid var(--line);padding-top:13px}
   .personal-form-title{font-size:13px;font-weight:800;margin-bottom:8px;color:#dbe1e7}
   .personal-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;margin-bottom:8px}
@@ -169,11 +170,10 @@
     .app{padding-left:16px;padding-right:16px}
     h1{font-size:26px}
     .monthtitle{font-size:23px}
-    .day{padding:3px 5px 2px;grid-template-rows:24px 28px 13px minmax(0,1fr)}
-    .daynumrow{min-height:24px}.daynum{min-width:27px;height:24px;font-size:14.5px}
-    .shift{min-height:28px;margin-top:0}.badge{min-width:36px;height:27px;font-size:16.5px;padding:0 8px}
-    .holiday-name{font-size:9px;min-height:13px;line-height:13px;padding:0}
-    .personal-line{font-size:9.5px;line-height:12px}.personal-more{font-size:8.5px;line-height:11px}
+    .day{padding:4px 6px 3px;grid-template-rows:27px 32px 15px}
+    .daynumrow{min-height:27px}.daynum{min-width:28px;height:27px;font-size:15px}
+    .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
+    .holiday-name{font-size:9.5px;min-height:15px;line-height:15px;padding:0}
     .personal-sheet{margin-bottom:0}
   }
 </style>
@@ -182,12 +182,15 @@
 <main class="app">
   <div class="top">
     <h1>통수본</h1>
-    <div class="team-wrap">
-      <select id="teamSelect" aria-label="팀 선택">
-        <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
-        <option value="5">5팀</option><option value="6">6팀</option><option value="7">7팀</option><option value="8">8팀</option>
-        <option value="9">9팀</option><option value="10">10팀</option><option value="11">11팀</option><option value="12">12팀</option>
-      </select>
+    <div class="top-actions">
+      <button type="button" class="memo-btn" id="memoBtn">메모</button>
+      <div class="team-wrap">
+        <select id="teamSelect" aria-label="팀 선택">
+          <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
+          <option value="5">5팀</option><option value="6">6팀</option><option value="7">7팀</option><option value="8">8팀</option>
+          <option value="9">9팀</option><option value="10">10팀</option><option value="11">11팀</option><option value="12">12팀</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -225,6 +228,10 @@
       <button type="button" class="personal-close" id="personalClose" aria-label="닫기">×</button>
     </div>
     <div class="personal-body">
+      <div class="personal-date-control">
+        <label class="personal-date-label" for="personalDateInput">날짜</label>
+        <input class="personal-date-input" id="personalDateInput" type="date" aria-label="개인 일정 날짜" />
+      </div>
       <div class="personal-list" id="personalList"></div>
       <div class="personal-form">
         <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
@@ -247,6 +254,7 @@
   'use strict';
 
   const teamSelect = document.getElementById('teamSelect');
+  const memoBtn = document.getElementById('memoBtn');
   const calendar = document.getElementById('calendar');
   const monthViewport = document.getElementById('monthViewport');
   const monthTrack = document.getElementById('monthTrack');
@@ -254,8 +262,9 @@
   const todayBtn = document.getElementById('todayBtn');
   const toast = document.getElementById('toast');
 
-  // [재설립] 개인 일정 UI 참조
+  // [재설립] 달력 바깥 개인 일정 UI 참조
   const personalOverlay = document.getElementById('personalOverlay');
+  const personalDateInput = document.getElementById('personalDateInput');
   const personalDateTitle = document.getElementById('personalDateTitle');
   const personalDutyInfo = document.getElementById('personalDutyInfo');
   const personalClose = document.getElementById('personalClose');
@@ -607,39 +616,6 @@
     return memo || '메모';
   }
 
-  function renderPersonalSlot(slot,key){
-    slot.innerHTML = '';
-    const items = personalItemsForKey(key);
-    if (!items.length){
-      const empty = document.createElement('div');
-      empty.className = 'personal-empty';
-      empty.textContent = '메모 +';
-      slot.appendChild(empty);
-      return;
-    }
-
-    const visible = items.slice(0,2);
-    for (const item of visible){
-      const line = document.createElement('div');
-      line.className = 'personal-line';
-      if (item.time){
-        const time = document.createElement('span');
-        time.className = 'personal-time';
-        time.textContent = item.time;
-        line.appendChild(time);
-      }
-      const textNode = document.createTextNode(personalDisplayText(item));
-      line.appendChild(textNode);
-      slot.appendChild(line);
-    }
-    if (items.length > 2){
-      const more = document.createElement('div');
-      more.className = 'personal-more';
-      more.textContent = `+${items.length - 2}`;
-      slot.appendChild(more);
-    }
-  }
-
   let activePersonalDateKey = null;
   let editingPersonalId = null;
 
@@ -724,18 +700,31 @@
     }
   }
 
-  function openPersonalEditor(key){
-    activePersonalDateKey = key;
-    resetPersonalForm();
-    const {y,m,d,date} = parseKey(key);
+  function refreshPersonalDateContext(){
+    if (!activePersonalDateKey) return;
+    const {y,m,d,date} = parseKey(activePersonalDateKey);
+    personalDateInput.value = activePersonalDateKey;
     personalDateTitle.textContent = `${y}년 ${m}월 ${d}일 (${weekdayKo(date)})`;
-    const holiday = holidayForKey(key);
+    const holiday = holidayForKey(activePersonalDateKey);
     const dutyTeams = dutyTeamsForDate(y,m-1,d);
     const info = [];
     if (holiday) info.push(holiday.name);
     if (dutyTeams.length) info.push(`당직 ${dutyTeams.map(t=>`${t}팀`).join(' · ')}`);
     personalDutyInfo.textContent = info.length ? info.join(' · ') : '개인 일정';
     renderPersonalList();
+  }
+
+  function defaultPersonalDateKey(){
+    if (viewYear === now.getFullYear() && viewMonth === now.getMonth()){
+      return keyOf(now.getFullYear(),now.getMonth(),now.getDate());
+    }
+    return keyOf(viewYear,viewMonth,1);
+  }
+
+  function openPersonalEditor(key = defaultPersonalDateKey()){
+    activePersonalDateKey = key;
+    resetPersonalForm();
+    refreshPersonalDateContext();
     personalOverlay.classList.add('open');
     personalOverlay.setAttribute('aria-hidden','false');
     document.body.classList.add('personal-open');
@@ -810,6 +799,15 @@
     showToast(wasEditing ? '개인 일정을 수정했습니다.' : '개인 일정을 저장했습니다.',1300);
   }
 
+  memoBtn.addEventListener('click',()=>openPersonalEditor());
+  personalDateInput.addEventListener('change',()=>{
+    const key = personalDateInput.value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return;
+    activePersonalDateKey = key;
+    resetPersonalForm();
+    refreshPersonalDateContext();
+  });
+
   personalClose.addEventListener('click',closePersonalEditor);
   personalOverlay.addEventListener('click',e=>{
     if (e.target===personalOverlay) closePersonalEditor();
@@ -875,18 +873,13 @@
       h.textContent = holiday ? holiday.label : '';
       cell.appendChild(h);
 
-      // [재설립] 개인 일정 레이어. 클릭 이벤트를 기존 날짜 셀 토스트와 분리.
-      const personalSlot = document.createElement('div');
-      personalSlot.className = 'personal-slot';
-      personalSlot.setAttribute('role','button');
-      personalSlot.setAttribute('aria-label',`${m+1}월 ${d}일 개인 일정`);
-      renderPersonalSlot(personalSlot,key);
-      personalSlot.addEventListener('click',e=>{
-        e.stopPropagation();
-        if (Date.now() < suppressTapUntil) return;
-        openPersonalEditor(key);
-      });
-      cell.appendChild(personalSlot);
+      // 개인 일정이 있는 날짜에는 조작부 대신 작은 표시점만 둔다.
+      if (personalItemsForKey(key).length){
+        const mark = document.createElement('span');
+        mark.className = 'personal-mark';
+        mark.setAttribute('aria-label','개인 일정 있음');
+        numRow.appendChild(mark);
+      }
 
       // 기존 동작 유지: 개인 일정 영역이 아닌 날짜 셀 탭은 당직 토스트.
       cell.addEventListener('click',()=>{
