@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261001-investigation-agenda-v6" />
+<meta name="tongsu-build" content="20261001-duty-popup-v7" />
 <style>
   :root{
     color-scheme:dark;
@@ -116,8 +116,8 @@
   .agenda-day-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
   .agenda-day-date{font-size:14px;font-weight:900;letter-spacing:-.035em;color:#e9edf1}
   .agenda-shift{font-size:11px;font-weight:850;letter-spacing:-.025em;color:#a6b0ba;border:1px solid #303945;border-radius:999px;padding:4px 8px;background:#151b21;white-space:nowrap}
-  .agenda-shift.duty-primary{color:#ff8992;border-color:rgba(239,93,108,.34);background:rgba(222,76,91,.10)}
-  .agenda-shift.duty-secondary{color:#c8d0d8;border-color:rgba(154,166,180,.28);background:rgba(116,128,142,.10)}
+  .agenda-shift.duty-primary{color:#ffad5a;border-color:rgba(255,159,67,.28);background:rgba(255,159,67,.09)}
+  .agenda-shift.duty-secondary{color:#d98a4c;border-color:rgba(196,116,52,.20);background:rgba(196,116,52,.07)}
   .agenda-items{display:flex;flex-direction:column;gap:6px}
   .agenda-item{width:100%;border:1px solid #29323c;border-radius:12px;background:#151a20;color:var(--text);text-align:left;padding:9px 10px;cursor:pointer}
   .agenda-item:active{background:#1b222a}
@@ -149,7 +149,10 @@
   .day.sat .daynum{color:var(--sat)}
   .day.holiday:not(.sat) .daynum{color:var(--sun)}
   .shift{display:flex;justify-content:center;align-items:center;min-height:29px;margin-top:0}
-  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;border:1px solid transparent;background:transparent}
+  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:850;font-size:16px;border:1px solid transparent;background:transparent;white-space:nowrap}
+  /* [국소 재설립] 선택 팀의 당직은 달력에서 주당직/부당직으로 직접 표시 */
+  .badge.duty-primary{min-width:43px;padding:0 4px;font-size:12.5px;color:#ffad5a;background:rgba(255,159,67,.10);border-color:rgba(255,159,67,.24)}
+  .badge.duty-secondary{min-width:43px;padding:0 4px;font-size:12.5px;color:#d98a4c;background:rgba(200,119,55,.075);border-color:rgba(200,119,55,.18)}
   .badge.duty{color:rgba(255,159,67,.82);background:transparent;border-color:transparent}
   .badge.rest{color:rgba(255,94,126,.80);background:transparent;border-color:transparent}
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
@@ -160,42 +163,27 @@
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
-  /* [국소 재설립] 날짜 토스트: 하단형 제거 → 화면 중앙 상단 카드형 */
-  .toast{
-    position:fixed;
-    left:50%;
-    top:32dvh;
-    width:min(86vw,380px);
-    padding:14px;
-    border-radius:18px;
-    background:rgba(20,25,31,.97);
-    border:1px solid rgba(255,255,255,.16);
-    box-shadow:0 18px 52px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.025) inset;
-    color:#f6f8fa;
-    opacity:0;
-    pointer-events:none;
-    transform:translate(-50%,-8px) scale(.97);
-    transition:opacity .16s ease,transform .18s cubic-bezier(.2,.75,.25,1);
-    z-index:1100;
-    text-align:left;
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-  }
-  .toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
-  .toast.simple{width:auto;max-width:min(86vw,380px);padding:12px 16px;text-align:center;font-size:14px;font-weight:800;letter-spacing:-.02em}
-  .toast-date{font-size:15px;font-weight:850;letter-spacing:-.035em;line-height:1.25}
-  .toast-holiday{margin-top:3px;color:#ff7f89;font-size:11.5px;font-weight:750;line-height:1.25}
-  .toast-duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
-  .toast-duty-card{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:11px 12px;border-radius:13px;border:1px solid transparent}
-  .toast-duty-card.primary{background:rgba(222,76,91,.13);border-color:rgba(239,93,108,.36)}
-  .toast-duty-card.secondary{background:rgba(116,128,142,.12);border-color:rgba(154,166,180,.26)}
-  .toast-duty-label{font-size:14px;font-weight:900;letter-spacing:-.03em;white-space:nowrap}
-  .toast-duty-card.primary .toast-duty-label{color:#ff737f}
-  .toast-duty-card.secondary .toast-duty-label{color:#c0c9d3}
-  .toast-duty-team{font-size:19px;font-weight:900;letter-spacing:-.045em;white-space:nowrap}
-  .toast-duty-card.primary .toast-duty-team{color:#fff0f2}
-  .toast-duty-card.secondary .toast-duty-team{color:#f0f3f6}
-  @media (max-height:700px){.toast{top:28dvh}}
+  /* [국소 제거] 날짜 근무정보용 자동 소멸 토스트는 폐기. 저장/삭제 안내용 짧은 상태 토스트만 유지. */
+  .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,12px);max-width:min(86vw,360px);padding:10px 14px;border-radius:12px;background:rgba(29,35,42,.96);border:1px solid rgba(255,255,255,.11);box-shadow:0 8px 28px rgba(0,0,0,.34);color:#f6f8fa;font-size:13px;font-weight:800;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .14s ease,transform .14s ease;z-index:1350;text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.simple{width:auto}
+
+  /* [국소 재설립] 날짜 근무정보 팝업: 수동 닫기, 다른 날짜 선택 시 같은 팝업의 내용만 즉시 교체 */
+  .duty-popup{position:fixed;left:50%;top:27dvh;width:min(88vw,390px);padding:16px;border-radius:19px;background:rgba(18,23,29,.985);border:1px solid rgba(255,255,255,.16);box-shadow:0 20px 58px rgba(0,0,0,.56),0 0 0 1px rgba(255,255,255,.025) inset;color:#f6f8fa;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,-8px) scale(.975);transition:opacity .15s ease,transform .18s cubic-bezier(.2,.75,.25,1),visibility 0s linear .18s;z-index:1120;text-align:left;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .duty-popup.show{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0) scale(1);transition-delay:0s}
+  .duty-popup-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:2px}
+  .duty-popup-date{font-size:17px;font-weight:900;letter-spacing:-.04em;line-height:1.3}
+  .duty-popup-holiday{margin-top:4px;color:#ff7f89;font-size:12px;font-weight:800;line-height:1.3}
+  .duty-popup-close{flex:0 0 auto;width:32px;height:32px;margin-top:-3px;margin-right:-3px;border:1px solid #333d48;border-radius:50%;background:#1a2129;color:#e7ebef;font-size:19px;font-weight:700;line-height:1;cursor:pointer}
+  .duty-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+  .duty-popup-card{display:flex;flex-direction:column;gap:4px;min-width:0;padding:12px 13px;border-radius:14px;border:1px solid transparent}
+  .duty-popup-card.primary{background:rgba(255,159,67,.105);border-color:rgba(255,159,67,.28)}
+  .duty-popup-card.secondary{background:rgba(196,116,52,.075);border-color:rgba(196,116,52,.20)}
+  .duty-popup-label{font-size:12.5px;font-weight:900;letter-spacing:-.025em}
+  .duty-popup-card.primary .duty-popup-label{color:#ffad5a}
+  .duty-popup-card.secondary .duty-popup-label{color:#d98a4c}
+  .duty-popup-team{font-size:21px;font-weight:950;letter-spacing:-.045em;line-height:1.1;color:#f5f7f9}
+  @media (max-height:700px){.duty-popup{top:23dvh}}
 
   /* [재설립] 달력 바깥 메모 버튼에서 여는 개인 일정 편집 오버레이 */
   .personal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:0}
@@ -260,7 +248,7 @@
     .monthtitle{font-size:23px}
     .day{padding:4px 6px 3px;grid-template-rows:27px 32px 15px}
     .daynumrow{min-height:27px}.daynum{min-width:28px;height:27px;font-size:15px}
-    .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
+    .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}.badge.duty-primary,.badge.duty-secondary{min-width:48px;font-size:13.5px;padding:0 5px}
     .holiday-name{font-size:9.5px;min-height:15px;line-height:15px;padding:0}
     .personal-sheet{margin-bottom:0}
     .view-tab{font-size:12px;padding:7px 10px}
@@ -311,10 +299,30 @@
   <section class="agenda is-hidden" id="agenda" aria-label="조사 일정"></section>
 
   <div class="legend" id="legend" aria-label="근무 표시">
-    <span><i class="dot d1"></i>당</span><span><i class="dot d2"></i>휴</span><span><i class="dot d3"></i>일</span><span><i class="dot d4"></i>비</span>
+    <span><i class="dot" style="background:#ffad5a"></i>주당직</span><span><i class="dot" style="background:#d98a4c"></i>부당직</span><span><i class="dot d2"></i>휴</span><span><i class="dot d3"></i>일</span><span><i class="dot d4"></i>비</span>
   </div>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="duty-popup" id="dutyPopup" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="dutyPopupDate">
+  <div class="duty-popup-head">
+    <div>
+      <div class="duty-popup-date" id="dutyPopupDate"></div>
+      <div class="duty-popup-holiday" id="dutyPopupHoliday"></div>
+    </div>
+    <button type="button" class="duty-popup-close" id="dutyPopupClose" aria-label="근무정보 닫기">×</button>
+  </div>
+  <div class="duty-popup-grid">
+    <div class="duty-popup-card primary">
+      <span class="duty-popup-label">주당직</span>
+      <strong class="duty-popup-team" id="dutyPopupPrimary">-</strong>
+    </div>
+    <div class="duty-popup-card secondary">
+      <span class="duty-popup-label">부당직</span>
+      <strong class="duty-popup-team" id="dutyPopupSecondary">-</strong>
+    </div>
+  </div>
+</div>
 
 <!-- [재설립] 개인 일정 전용 오버레이. 근무표 DOM과 분리 -->
 <div class="personal-overlay" id="personalOverlay" aria-hidden="true">
@@ -390,6 +398,12 @@
   const monthTitle = document.getElementById('monthTitle');
   const todayBtn = document.getElementById('todayBtn');
   const toast = document.getElementById('toast');
+  const dutyPopup = document.getElementById('dutyPopup');
+  const dutyPopupDate = document.getElementById('dutyPopupDate');
+  const dutyPopupHoliday = document.getElementById('dutyPopupHoliday');
+  const dutyPopupPrimary = document.getElementById('dutyPopupPrimary');
+  const dutyPopupSecondary = document.getElementById('dutyPopupSecondary');
+  const dutyPopupClose = document.getElementById('dutyPopupClose');
   const workTab = document.getElementById('workTab');
   const investigationTab = document.getElementById('investigationTab');
   const agenda = document.getElementById('agenda');
@@ -658,7 +672,9 @@
   }
 
   function badgeClass(shift){
-    return shift === '당' ? 'duty' : shift === '휴' ? 'rest' : shift === '일' ? 'work' : 'off';
+    if (shift === '주당직') return 'duty-primary';
+    if (shift === '부당직') return 'duty-secondary';
+    return shift === '당' || shift === '당직' ? 'duty' : shift === '휴' ? 'rest' : shift === '일' ? 'work' : 'off';
   }
 
   function dutyTeamsForDate(y,m,d){
@@ -703,7 +719,7 @@
   }
 
   let toastTimer = null;
-  function openToast(duration=2300){
+  function openToast(duration=1500){
     toast.classList.add('show');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(()=>toast.classList.remove('show'),duration);
@@ -715,53 +731,25 @@
     requestAnimationFrame(()=>openToast(duration));
   }
 
-  function showToastForDate(y,m,d){
+  function closeDutyPopup(){
+    dutyPopup.classList.remove('show');
+    dutyPopup.setAttribute('aria-hidden','true');
+  }
+
+  function showDutyPopupForDate(y,m,d){
     const key = keyOf(y,m,d);
     const holiday = holidayForKey(key);
     const roles = dutyRolesForDate(y,m,d);
     const weekday = ['일','월','화','수','목','금','토'][new Date(y,m,d).getDay()];
 
-    toast.className = 'toast';
-    toast.innerHTML = '';
-
-    const dateLine = document.createElement('div');
-    dateLine.className = 'toast-date';
-    dateLine.textContent = `${m+1}월 ${d}일 ${weekday}요일`;
-    toast.appendChild(dateLine);
-
-    if (holiday){
-      const holidayLine = document.createElement('div');
-      holidayLine.className = 'toast-holiday';
-      holidayLine.textContent = holiday.name;
-      toast.appendChild(holidayLine);
-    }
-
-    const grid = document.createElement('div');
-    grid.className = 'toast-duty-grid';
-
-    const primaryCard = document.createElement('div');
-    primaryCard.className = 'toast-duty-card primary';
-    const primaryLabel = document.createElement('span');
-    primaryLabel.className = 'toast-duty-label';
-    primaryLabel.textContent = '주 :';
-    const primaryTeam = document.createElement('strong');
-    primaryTeam.className = 'toast-duty-team';
-    primaryTeam.textContent = roles.primary ? `${roles.primary}팀` : '-';
-    primaryCard.append(primaryLabel,primaryTeam);
-
-    const secondaryCard = document.createElement('div');
-    secondaryCard.className = 'toast-duty-card secondary';
-    const secondaryLabel = document.createElement('span');
-    secondaryLabel.className = 'toast-duty-label';
-    secondaryLabel.textContent = '부 :';
-    const secondaryTeam = document.createElement('strong');
-    secondaryTeam.className = 'toast-duty-team';
-    secondaryTeam.textContent = roles.secondary ? `${roles.secondary}팀` : '-';
-    secondaryCard.append(secondaryLabel,secondaryTeam);
-
-    grid.append(primaryCard,secondaryCard);
-    toast.appendChild(grid);
-    requestAnimationFrame(()=>openToast(2500));
+    // 이미 다른 날짜 팝업이 열려 있어도 새 내용을 같은 팝업에 즉시 재설립한다.
+    dutyPopupDate.textContent = `${m+1}월 ${d}일 ${weekday}요일`;
+    dutyPopupHoliday.textContent = holiday ? holiday.name : '';
+    dutyPopupHoliday.style.display = holiday ? '' : 'none';
+    dutyPopupPrimary.textContent = roles.primary ? `${roles.primary}팀` : '-';
+    dutyPopupSecondary.textContent = roles.secondary ? `${roles.secondary}팀` : '-';
+    dutyPopup.classList.add('show');
+    dutyPopup.setAttribute('aria-hidden','false');
   }
 
   /* =========================================================
@@ -879,6 +867,7 @@
   }
 
   function setView(next){
+    closeDutyPopup();
     currentView = next === 'agenda' ? 'agenda' : 'work';
     const work = currentView === 'work';
     calendar.classList.toggle('is-hidden',!work);
@@ -1284,6 +1273,8 @@
     startPersonalEdit(id);
   });
 
+  dutyPopupClose.addEventListener('click',closeDutyPopup);
+
   workTab.addEventListener('click',()=>setView('work'));
   investigationTab.addEventListener('click',()=>setView('agenda'));
 
@@ -1291,6 +1282,7 @@
     if (e.key!=='Escape') return;
     if (detailOverlay.classList.contains('open')) closeDetail();
     else if (personalOverlay.classList.contains('open')) closePersonalEditor();
+    else if (dutyPopup.classList.contains('show')) closeDutyPopup();
   });
 
   // 조사일정은 세로 스크롤을 유지하고, 좌우 스와이프로 월 이동.
@@ -1329,7 +1321,7 @@
       const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
       const wd = date.getDay();
       const key = keyOf(y,m,d);
-      const shift = shiftForDate(selectedTeam,y,m,d);
+      const shift = selectedTeamShiftLabel(y,m,d);
       const holiday = holidayForKey(key);
 
       const cell = document.createElement('div');
@@ -1390,10 +1382,11 @@
         cell.appendChild(flags);
       }
 
-      // 기존 동작 유지: 개인 일정 영역이 아닌 날짜 셀 탭은 당직 토스트.
+      // [국소 재설립] 날짜 셀 탭은 자동 소멸 토스트가 아니라 근무정보 팝업을 연다.
+      // 다른 날짜를 누르면 같은 팝업의 내용이 즉시 교체되므로 기존 팝업은 쌓이지 않는다.
       cell.addEventListener('click',()=>{
         if (Date.now() < suppressTapUntil) return;
-        showToastForDate(y,m,d);
+        showDutyPopupForDate(y,m,d);
       });
       grid.appendChild(cell);
     }
@@ -1420,6 +1413,7 @@
   }
 
   function buildMonthTrack(){
+    closeDutyPopup();
     const prev = shiftedMonth(viewYear,viewMonth,-1);
     const next = shiftedMonth(viewYear,viewMonth,1);
     monthTrack.innerHTML = '';
