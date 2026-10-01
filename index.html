@@ -22,6 +22,8 @@
     --rest:#ff5e7e;
     --work:#55aaff;
     --off:#d56a72;
+    --personal:#d9e2ec;
+    --personal-muted:#8d9aa8;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{
@@ -98,37 +100,80 @@
   .month-page{height:33.333333%;width:100%;overflow:hidden}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,minmax(0,1fr));height:100%;width:100%}
 
-  .day{min-height:0;padding:3px 4px 2px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:grid;grid-template-rows:24px 29px 13px;align-content:start;cursor:pointer;user-select:none}
+  /* [재설립] 기존 날짜/근무/공휴일 3단 구조 아래에 개인일정 전용 4번째 행을 독립 배치 */
+  .day{min-height:0;padding:2px 3px 2px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:grid;grid-template-rows:22px 26px 12px minmax(0,1fr);align-content:start;cursor:pointer;user-select:none;overflow:hidden}
   .day:nth-child(7n){border-right:0}
   .day:nth-last-child(-n+7){border-bottom:0}
   .day.other{opacity:.34;background:#0d1116}
   .day.today{background:#192029;box-shadow:inset 0 0 0 2px rgba(244,246,248,.9)}
-  .daynumrow{min-height:24px;display:flex;align-items:center}
-  .daynum{display:inline-flex;align-items:center;justify-content:flex-start;min-width:26px;height:24px;font-size:14px;font-weight:750;line-height:1;color:#e8ebef}
+  .daynumrow{min-height:22px;display:flex;align-items:center}
+  .daynum{display:inline-flex;align-items:center;justify-content:flex-start;min-width:25px;height:22px;font-size:13.5px;font-weight:750;line-height:1;color:#e8ebef}
   .day.sun .daynum{color:var(--sun)}
   .day.sat .daynum{color:var(--sat)}
   .day.holiday:not(.sat) .daynum{color:var(--sun)}
-  .shift{display:flex;justify-content:center;align-items:center;min-height:29px;margin-top:0}
-  .badge{min-width:34px;height:28px;padding:0 7px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;border:1px solid transparent;background:transparent}
+  .shift{display:flex;justify-content:center;align-items:center;min-height:26px;margin-top:0}
+  .badge{min-width:32px;height:25px;padding:0 6px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15.5px;border:1px solid transparent;background:transparent}
   .badge.duty{color:rgba(255,159,67,.82);background:transparent;border-color:transparent}
   .badge.rest{color:rgba(255,94,126,.80);background:transparent;border-color:transparent}
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
   .badge.off{color:rgba(213,106,114,.82);background:transparent;border-color:transparent}
-  .holiday-name{margin:0;min-height:13px;padding:0;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .holiday-name{margin:0;min-height:12px;padding:0;text-align:center;color:var(--sun);font-size:8px;font-weight:700;line-height:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* [재설립] 개인 일정 표시 레이어. 이 영역의 탭만 일정 편집기를 열며 기존 셀 탭 토스트는 그대로 유지. */
+  .personal-slot{min-width:0;min-height:0;overflow:hidden;border-top:1px solid rgba(137,147,159,.15);padding:2px 1px 0;display:flex;flex-direction:column;justify-content:flex-start;gap:0;cursor:pointer}
+  .personal-empty{height:100%;min-height:15px;display:flex;align-items:center;justify-content:center;color:#596675;font-size:11px;font-weight:700;line-height:1;opacity:.86}
+  .personal-line{min-width:0;color:var(--personal);font-size:8.5px;font-weight:650;line-height:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+  .personal-time{color:var(--personal-muted);font-variant-numeric:tabular-nums;margin-right:2px}
+  .personal-more{color:#738292;font-size:8px;font-weight:750;line-height:10px;white-space:nowrap;text-align:right;padding-right:1px}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
   .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,18px);max-width:calc(100vw - 32px);padding:11px 15px;border-radius:13px;background:rgba(30,36,44,.96);border:1px solid rgba(255,255,255,.13);box-shadow:0 8px 30px rgba(0,0,0,.34);color:#fff;font-size:13px;font-weight:700;letter-spacing:-.02em;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:1000;text-align:center;white-space:nowrap}
   .toast.show{opacity:1;transform:translate(-50%,0)}
 
+  /* [재설립] 개인 일정 편집 오버레이 */
+  .personal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:0}
+  .personal-overlay.open{display:flex}
+  .personal-sheet{width:min(100%,720px);max-height:min(82dvh,760px);background:#11161c;border:1px solid #2b3540;border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 55px rgba(0,0,0,.48);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+  .personal-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:15px 16px 12px;border-bottom:1px solid var(--line)}
+  .personal-head-text{min-width:0}
+  .personal-date-title{margin:0;font-size:19px;font-weight:850;letter-spacing:-.035em;line-height:1.25}
+  .personal-duty-info{margin-top:4px;color:var(--muted);font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .personal-close{flex:0 0 auto;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);color:var(--text);font-size:18px;font-weight:700;line-height:1;cursor:pointer}
+  .personal-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:13px 14px 18px}
+  .personal-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .personal-list-empty{padding:12px 10px;border:1px dashed #2e3945;border-radius:12px;color:#74808d;font-size:12.5px;text-align:center}
+  .personal-card{border:1px solid #2a333d;border-radius:13px;background:#151b22;padding:10px 10px 9px}
+  .personal-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .personal-card-main{min-width:0;flex:1 1 auto}
+  .personal-card-title{font-size:14px;font-weight:800;line-height:1.35;word-break:break-word}
+  .personal-card-time{display:inline-block;margin-right:6px;color:#9eacba;font-size:12px;font-weight:750;font-variant-numeric:tabular-nums}
+  .personal-card-memo{margin-top:4px;color:#aeb8c2;font-size:12px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  .personal-card-actions{flex:0 0 auto;display:flex;gap:5px}
+  .personal-mini-btn{border:1px solid #303b47;border-radius:9px;background:#1a2129;color:#cdd5dd;font-size:11px;font-weight:750;padding:6px 8px;cursor:pointer}
+  .personal-mini-btn.delete{color:#e0949a}
+  .personal-form{border-top:1px solid var(--line);padding-top:13px}
+  .personal-form-title{font-size:13px;font-weight:800;margin-bottom:8px;color:#dbe1e7}
+  .personal-row{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px;margin-bottom:8px}
+  .personal-field{width:100%;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:14px;outline:none;padding:10px 11px}
+  .personal-field:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
+  textarea.personal-field{min-height:76px;resize:vertical;line-height:1.45;margin-bottom:9px}
+  .personal-form-actions{display:flex;gap:8px}
+  .personal-save{flex:1 1 auto;border:1px solid #49657d;border-radius:11px;background:#1c3447;color:#e8f4ff;font-size:14px;font-weight:850;padding:10px 12px;cursor:pointer}
+  .personal-cancel{display:none;flex:0 0 auto;border:1px solid #343e49;border-radius:11px;background:#171d24;color:#b5bec8;font-size:13px;font-weight:750;padding:10px 12px;cursor:pointer}
+  .personal-cancel.show{display:block}
+  body.personal-open .calendar{touch-action:auto}
+
   @media (min-width:600px){
     .app{padding-left:16px;padding-right:16px}
     h1{font-size:26px}
     .monthtitle{font-size:23px}
-    .day{padding:4px 6px 3px;grid-template-rows:27px 32px 15px}
-    .daynumrow{min-height:27px}.daynum{min-width:28px;height:27px;font-size:15px}
-    .shift{min-height:32px;margin-top:0}.badge{min-width:38px;height:31px;font-size:17px;padding:0 9px}
-    .holiday-name{font-size:9.5px;min-height:15px;line-height:15px;padding:0}
+    .day{padding:3px 5px 2px;grid-template-rows:24px 28px 13px minmax(0,1fr)}
+    .daynumrow{min-height:24px}.daynum{min-width:27px;height:24px;font-size:14.5px}
+    .shift{min-height:28px;margin-top:0}.badge{min-width:36px;height:27px;font-size:16.5px;padding:0 8px}
+    .holiday-name{font-size:9px;min-height:13px;line-height:13px;padding:0}
+    .personal-line{font-size:9.5px;line-height:12px}.personal-more{font-size:8.5px;line-height:11px}
+    .personal-sheet{margin-bottom:0}
   }
 </style>
 </head>
@@ -167,6 +212,35 @@
   </div>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- [재설립] 개인 일정 전용 오버레이. 근무표 DOM과 분리 -->
+<div class="personal-overlay" id="personalOverlay" aria-hidden="true">
+  <section class="personal-sheet" role="dialog" aria-modal="true" aria-labelledby="personalDateTitle">
+    <div class="personal-head">
+      <div class="personal-head-text">
+        <h2 class="personal-date-title" id="personalDateTitle"></h2>
+        <div class="personal-duty-info" id="personalDutyInfo"></div>
+      </div>
+      <button type="button" class="personal-close" id="personalClose" aria-label="닫기">×</button>
+    </div>
+    <div class="personal-body">
+      <div class="personal-list" id="personalList"></div>
+      <div class="personal-form">
+        <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
+        <div class="personal-row">
+          <input class="personal-field" id="personalTime" type="time" aria-label="시간" />
+          <input class="personal-field" id="personalTitle" type="text" maxlength="80" placeholder="일정 또는 메모 제목" aria-label="제목" />
+        </div>
+        <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 (선택)" aria-label="메모"></textarea>
+        <div class="personal-form-actions">
+          <button type="button" class="personal-save" id="personalSave">저장</button>
+          <button type="button" class="personal-cancel" id="personalCancel">수정 취소</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <script>
 (() => {
   'use strict';
@@ -178,6 +252,19 @@
   const monthTitle = document.getElementById('monthTitle');
   const todayBtn = document.getElementById('todayBtn');
   const toast = document.getElementById('toast');
+
+  // [재설립] 개인 일정 UI 참조
+  const personalOverlay = document.getElementById('personalOverlay');
+  const personalDateTitle = document.getElementById('personalDateTitle');
+  const personalDutyInfo = document.getElementById('personalDutyInfo');
+  const personalClose = document.getElementById('personalClose');
+  const personalList = document.getElementById('personalList');
+  const personalFormTitle = document.getElementById('personalFormTitle');
+  const personalTime = document.getElementById('personalTime');
+  const personalTitle = document.getElementById('personalTitle');
+  const personalMemo = document.getElementById('personalMemo');
+  const personalSave = document.getElementById('personalSave');
+  const personalCancel = document.getElementById('personalCancel');
 
   const now = new Date();
   let viewYear = now.getFullYear();
@@ -210,8 +297,7 @@
     12:{'2026-09-20':'비','2026-09-21':'당','2026-09-22':'휴','2026-09-23':'일','2026-09-24':'비','2026-09-25':'비'}
   };
 
-  // 공휴일 엔진 R2 — 2026년 이후 현행 관공서 공휴일 규칙을 연도별 자동 생성.
-  // 고정일 + 음력 명절 + 대체공휴일을 계산하고, 수시 지정 공휴일만 별도 override로 둔다.
+  // 공휴일 엔진 R2 — 기존 검증본 유지.
   const SPECIAL_HOLIDAYS = {
     '2026-06-03':{label:'선거일',name:'전국동시지방선거일'}
   };
@@ -245,7 +331,7 @@
 
   function lunarPartsForSolar(y,m,d){
     if (!LUNAR_FORMATTER) return null;
-    const probe = new Date(Date.UTC(y,m,d,3)); // 정오(KST) 부근으로 날짜 경계 회피
+    const probe = new Date(Date.UTC(y,m,d,3));
     const parts = LUNAR_FORMATTER.formatToParts(probe);
     const get = type => parts.find(p=>p.type===type)?.value ?? '';
     return {month:get('month'),day:Number(get('day')),year:Number(get('relatedYear') || get('year'))};
@@ -258,7 +344,6 @@
       const d = new Date(ms);
       const lp = lunarPartsForSolar(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
       if (!lp) break;
-      // leap month는 month 값이 '4bis'처럼 나오므로 정확히 숫자 문자열인 경우만 채택.
       if (lp.year===gregorianYear && lp.month===String(lunarMonth) && lp.day===lunarDay){
         return holidayDateKeyFromUtcMs(ms);
       }
@@ -282,7 +367,6 @@
     const display = new Map();
     HOLIDAY_CACHE.set(year,display);
 
-    // 이 근무표의 운용 기준은 2026년 6당 체제이므로 이전 연도에는 현행 규칙을 역적용하지 않는다.
     if (year < 2026) return display;
 
     const base = [];
@@ -293,7 +377,6 @@
       mergeHolidayDisplay(display,key,label,name);
     };
 
-    // 고정 공휴일. weekend 정책은 토/일 중복 시 대체공휴일 대상.
     addBase(`${year}-01-01`,'신정','1월 1일','none');
     addBase(`${year}-03-01`,'3·1절','3·1절','weekend');
     addBase(`${year}-05-01`,'노동절','노동절','weekend');
@@ -305,7 +388,6 @@
     addBase(`${year}-10-09`,'한글날','한글날','weekend');
     addBase(`${year}-12-25`,'성탄절','기독탄신일','weekend');
 
-    // 음력 공휴일. Intl의 중국력은 Safari/iOS에서 제공되며 한국의 설·부처님오신날·추석 날짜와 일치한다.
     const seollal = findSolarForLunar(year,1,1,1,3);
     if (seollal){
       addBase(holidayAddDays(seollal,-1),'설연휴','설날 연휴','group','seollal');
@@ -323,7 +405,6 @@
       addBase(holidayAddDays(chuseok,1),'연휴','추석 연휴','group','chuseok');
     }
 
-    // 선거일·정부 수시 지정일처럼 달력 수학만으로 사전에 확정할 수 없는 날짜.
     for (const [key,info] of Object.entries(SPECIAL_HOLIDAYS)){
       if (Number(key.slice(0,4))===year) addBase(key,info.label,info.name,'none');
     }
@@ -334,7 +415,6 @@
       byKey.get(rec.key).push(rec);
     }
 
-    // 대체공휴일 발생 원인을 수집한다.
     const triggers = [];
     const triggered = new Set();
     const pushTrigger = (id,anchor,source)=>{
@@ -350,8 +430,6 @@
       }
     }
 
-    // 같은 날짜에 공휴일이 둘 이상 겹친 경우에는 '겹친 날짜'당 대체공휴일을 1회만 생성한다.
-    // (예: 2028-10-03 추석 연휴 + 개천절 → 10/05 하루만 대체휴일)
     for (const [key,records] of byKey.entries()){
       const wd = holidayWeekday(key);
       if (wd===0 || wd===6 || records.length < 2) continue;
@@ -361,7 +439,6 @@
       pushTrigger(`collision-date:${key}`,key,source);
     }
 
-    // 설날/추석 3일 중 일요일이 포함되면 그룹당 1일의 대체공휴일.
     for (const group of ['seollal','chuseok']){
       const members = base.filter(r=>r.group===group);
       const sunday = members.find(r=>holidayWeekday(r.key)===0);
@@ -372,7 +449,6 @@
 
     triggers.sort((a,b)=>a.anchor.localeCompare(b.anchor));
 
-    // '첫 번째 비공휴일'을 찾되, 대체공휴일이 토요일이면 다시 다음 비공휴일로 이동한다.
     const occupied = new Set(base.map(r=>r.key));
     for (const trig of triggers){
       let candidate = holidayAddDays(trig.anchor,1);
@@ -387,6 +463,7 @@
 
     return display;
   }
+
   const DAY_MS = 86400000;
   const historyStart = '2026-09-20';
   const formulaStart = '2026-09-26';
@@ -444,6 +521,13 @@
   }
 
   let toastTimer = null;
+  function showToast(message,duration=1900){
+    toast.textContent = message;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toast.classList.remove('show'),duration);
+  }
+
   function showToastForDate(y,m,d){
     const key = keyOf(y,m,d);
     const holiday = holidayForKey(key);
@@ -452,11 +536,288 @@
     if (holiday) parts.push(holiday.name);
     if (dutyTeams.length) parts.push(`당직 ${dutyTeams.map(t=>`${t}팀`).join(' · ')}`);
     else parts.push('당직 정보 없음');
-    toast.textContent = parts.join(' · ');
-    toast.classList.add('show');
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>toast.classList.remove('show'),1900);
+    showToast(parts.join(' · '));
   }
+
+  /* =========================================================
+     [국소 제거 및 재설립] 개인 일정 저장소
+     - 근무표/공휴일 엔진과 데이터 완전 분리
+     - 같은 주소를 쓰더라도 각 브라우저 localStorage에만 저장
+     ========================================================= */
+  const PERSONAL_STORAGE_KEY = 'tongsu_personal_schedule_v1';
+
+  function freshPersonalStore(){
+    return {schema:1,updatedAt:null,dates:{}};
+  }
+
+  function normalizePersonalStore(value){
+    if (!value || typeof value !== 'object') return freshPersonalStore();
+    const dates = value.dates && typeof value.dates === 'object' ? value.dates : {};
+    const cleanDates = {};
+    for (const [key,list] of Object.entries(dates)){
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(list)) continue;
+      const clean = list.filter(item=>item && typeof item === 'object').map(item=>({
+        id:String(item.id || makePersonalId()),
+        time:typeof item.time === 'string' ? item.time.slice(0,5) : '',
+        title:typeof item.title === 'string' ? item.title.slice(0,80) : '',
+        memo:typeof item.memo === 'string' ? item.memo.slice(0,1000) : '',
+        createdAt:typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+        updatedAt:typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
+      })).filter(item=>item.title.trim() || item.memo.trim());
+      if (clean.length) cleanDates[key] = clean;
+    }
+    return {schema:1,updatedAt:value.updatedAt || null,dates:cleanDates};
+  }
+
+  function loadPersonalStore(){
+    try{
+      const raw = localStorage.getItem(PERSONAL_STORAGE_KEY);
+      return raw ? normalizePersonalStore(JSON.parse(raw)) : freshPersonalStore();
+    }catch(_){
+      return freshPersonalStore();
+    }
+  }
+
+  let personalStore = loadPersonalStore();
+
+  function savePersonalStore(){
+    personalStore.updatedAt = new Date().toISOString();
+    localStorage.setItem(PERSONAL_STORAGE_KEY,JSON.stringify(personalStore));
+  }
+
+  function makePersonalId(){
+    return `P${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`;
+  }
+
+  function personalItemsForKey(key){
+    const source = Array.isArray(personalStore.dates[key]) ? personalStore.dates[key] : [];
+    return source.slice().sort((a,b)=>{
+      const at = a.time || '99:99';
+      const bt = b.time || '99:99';
+      if (at !== bt) return at.localeCompare(bt);
+      return String(a.createdAt).localeCompare(String(b.createdAt));
+    });
+  }
+
+  function personalDisplayText(item){
+    const title = String(item.title || '').trim();
+    if (title) return title;
+    const memo = String(item.memo || '').trim().replace(/\s+/g,' ');
+    return memo || '메모';
+  }
+
+  function renderPersonalSlot(slot,key){
+    slot.innerHTML = '';
+    const items = personalItemsForKey(key);
+    if (!items.length){
+      const empty = document.createElement('div');
+      empty.className = 'personal-empty';
+      empty.textContent = '＋';
+      slot.appendChild(empty);
+      return;
+    }
+
+    const visible = items.slice(0,2);
+    for (const item of visible){
+      const line = document.createElement('div');
+      line.className = 'personal-line';
+      if (item.time){
+        const time = document.createElement('span');
+        time.className = 'personal-time';
+        time.textContent = item.time;
+        line.appendChild(time);
+      }
+      const textNode = document.createTextNode(personalDisplayText(item));
+      line.appendChild(textNode);
+      slot.appendChild(line);
+    }
+    if (items.length > 2){
+      const more = document.createElement('div');
+      more.className = 'personal-more';
+      more.textContent = `+${items.length - 2}`;
+      slot.appendChild(more);
+    }
+  }
+
+  let activePersonalDateKey = null;
+  let editingPersonalId = null;
+
+  function parseKey(key){
+    const [y,m,d] = key.split('-').map(Number);
+    return {y,m,d,date:new Date(y,m-1,d)};
+  }
+
+  function weekdayKo(date){
+    return ['일','월','화','수','목','금','토'][date.getDay()];
+  }
+
+  function resetPersonalForm(){
+    editingPersonalId = null;
+    personalTime.value = '';
+    personalTitle.value = '';
+    personalMemo.value = '';
+    personalFormTitle.textContent = '일정 추가';
+    personalSave.textContent = '저장';
+    personalCancel.classList.remove('show');
+  }
+
+  function renderPersonalList(){
+    personalList.innerHTML = '';
+    if (!activePersonalDateKey) return;
+    const items = personalItemsForKey(activePersonalDateKey);
+    if (!items.length){
+      const empty = document.createElement('div');
+      empty.className = 'personal-list-empty';
+      empty.textContent = '등록된 개인 일정이 없습니다.';
+      personalList.appendChild(empty);
+      return;
+    }
+
+    for (const item of items){
+      const card = document.createElement('article');
+      card.className = 'personal-card';
+
+      const top = document.createElement('div');
+      top.className = 'personal-card-top';
+
+      const main = document.createElement('div');
+      main.className = 'personal-card-main';
+
+      const title = document.createElement('div');
+      title.className = 'personal-card-title';
+      if (item.time){
+        const time = document.createElement('span');
+        time.className = 'personal-card-time';
+        time.textContent = item.time;
+        title.appendChild(time);
+      }
+      title.appendChild(document.createTextNode(personalDisplayText(item)));
+      main.appendChild(title);
+
+      if (item.memo && item.memo.trim()){
+        const memo = document.createElement('div');
+        memo.className = 'personal-card-memo';
+        memo.textContent = item.memo.trim();
+        main.appendChild(memo);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'personal-card-actions';
+
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'personal-mini-btn';
+      edit.textContent = '수정';
+      edit.addEventListener('click',()=>startPersonalEdit(item.id));
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'personal-mini-btn delete';
+      del.textContent = '삭제';
+      del.addEventListener('click',()=>deletePersonalItem(item.id));
+
+      actions.append(edit,del);
+      top.append(main,actions);
+      card.appendChild(top);
+      personalList.appendChild(card);
+    }
+  }
+
+  function openPersonalEditor(key){
+    activePersonalDateKey = key;
+    resetPersonalForm();
+    const {y,m,d,date} = parseKey(key);
+    personalDateTitle.textContent = `${y}년 ${m}월 ${d}일 (${weekdayKo(date)})`;
+    const holiday = holidayForKey(key);
+    const dutyTeams = dutyTeamsForDate(y,m-1,d);
+    const info = [];
+    if (holiday) info.push(holiday.name);
+    if (dutyTeams.length) info.push(`당직 ${dutyTeams.map(t=>`${t}팀`).join(' · ')}`);
+    personalDutyInfo.textContent = info.length ? info.join(' · ') : '개인 일정';
+    renderPersonalList();
+    personalOverlay.classList.add('open');
+    personalOverlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('personal-open');
+  }
+
+  function closePersonalEditor(){
+    personalOverlay.classList.remove('open');
+    personalOverlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('personal-open');
+    activePersonalDateKey = null;
+    resetPersonalForm();
+  }
+
+  function startPersonalEdit(id){
+    if (!activePersonalDateKey) return;
+    const items = personalStore.dates[activePersonalDateKey] || [];
+    const item = items.find(x=>x.id===id);
+    if (!item) return;
+    editingPersonalId = id;
+    personalTime.value = item.time || '';
+    personalTitle.value = item.title || '';
+    personalMemo.value = item.memo || '';
+    personalFormTitle.textContent = '일정 수정';
+    personalSave.textContent = '수정 저장';
+    personalCancel.classList.add('show');
+    personalTitle.focus({preventScroll:false});
+  }
+
+  function deletePersonalItem(id){
+    if (!activePersonalDateKey) return;
+    if (!confirm('이 개인 일정을 삭제할까요?')) return;
+    const list = personalStore.dates[activePersonalDateKey] || [];
+    personalStore.dates[activePersonalDateKey] = list.filter(item=>item.id!==id);
+    if (!personalStore.dates[activePersonalDateKey].length) delete personalStore.dates[activePersonalDateKey];
+    savePersonalStore();
+    if (editingPersonalId===id) resetPersonalForm();
+    renderPersonalList();
+    buildMonthTrack();
+    showToast('개인 일정을 삭제했습니다.',1300);
+  }
+
+  function savePersonalItem(){
+    if (!activePersonalDateKey) return;
+    const time = personalTime.value.trim();
+    const title = personalTitle.value.trim();
+    const memo = personalMemo.value.trim();
+    if (!title && !memo){
+      showToast('일정 또는 메모 내용을 입력하세요.',1600);
+      personalTitle.focus();
+      return;
+    }
+
+    const list = personalStore.dates[activePersonalDateKey] || [];
+    const nowIso = new Date().toISOString();
+    const wasEditing = Boolean(editingPersonalId);
+    if (editingPersonalId){
+      const item = list.find(x=>x.id===editingPersonalId);
+      if (item){
+        item.time = time;
+        item.title = title;
+        item.memo = memo;
+        item.updatedAt = nowIso;
+      }
+    }else{
+      list.push({id:makePersonalId(),time,title,memo,createdAt:nowIso,updatedAt:nowIso});
+    }
+    personalStore.dates[activePersonalDateKey] = list;
+    savePersonalStore();
+    resetPersonalForm();
+    renderPersonalList();
+    buildMonthTrack();
+    showToast(wasEditing ? '개인 일정을 수정했습니다.' : '개인 일정을 저장했습니다.',1300);
+  }
+
+  personalClose.addEventListener('click',closePersonalEditor);
+  personalOverlay.addEventListener('click',e=>{
+    if (e.target===personalOverlay) closePersonalEditor();
+  });
+  personalSave.addEventListener('click',savePersonalItem);
+  personalCancel.addEventListener('click',resetPersonalForm);
+  window.addEventListener('keydown',e=>{
+    if (e.key==='Escape' && personalOverlay.classList.contains('open')) closePersonalEditor();
+  });
 
   let suppressTapUntil = 0;
 
@@ -482,6 +843,7 @@
 
       const cell = document.createElement('div');
       cell.className = 'day';
+      cell.dataset.dateKey = key;
       if (m !== pageMonth) cell.classList.add('other');
       if (wd === 0) cell.classList.add('sun');
       if (wd === 6) cell.classList.add('sat');
@@ -506,13 +868,26 @@
       }
       cell.appendChild(wrap);
 
-      if (holiday){
-        const h = document.createElement('div');
-        h.className = 'holiday-name';
-        h.textContent = holiday.label;
-        cell.appendChild(h);
-      }
+      // [재설립] 공휴일 행을 항상 생성하여 개인일정 행의 위치를 날짜마다 고정.
+      const h = document.createElement('div');
+      h.className = 'holiday-name';
+      h.textContent = holiday ? holiday.label : '';
+      cell.appendChild(h);
 
+      // [재설립] 개인 일정 레이어. 클릭 이벤트를 기존 날짜 셀 토스트와 분리.
+      const personalSlot = document.createElement('div');
+      personalSlot.className = 'personal-slot';
+      personalSlot.setAttribute('role','button');
+      personalSlot.setAttribute('aria-label',`${m+1}월 ${d}일 개인 일정`);
+      renderPersonalSlot(personalSlot,key);
+      personalSlot.addEventListener('click',e=>{
+        e.stopPropagation();
+        if (Date.now() < suppressTapUntil) return;
+        openPersonalEditor(key);
+      });
+      cell.appendChild(personalSlot);
+
+      // 기존 동작 유지: 개인 일정 영역이 아닌 날짜 셀 탭은 당직 토스트.
       cell.addEventListener('click',()=>{
         if (Date.now() < suppressTapUntil) return;
         showToastForDate(y,m,d);
@@ -597,7 +972,7 @@
   };
 
   calendar.addEventListener('touchstart',e=>{
-    if (animating || e.touches.length !== 1) return;
+    if (animating || personalOverlay.classList.contains('open') || e.touches.length !== 1) return;
     const t = e.touches[0];
     gesture.active = true;
     gesture.startX = t.clientX;
