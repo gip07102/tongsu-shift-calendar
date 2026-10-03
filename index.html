@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261002-ios-persistent-touch-guard-v9" />
+<meta name="tongsu-build" content="20261002-schedule-general-investigation-v10" />
 <style>
   :root{
     color-scheme:dark;
@@ -158,7 +158,7 @@
   .agenda-time{flex:0 0 auto;color:#a8b4c0;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;min-width:39px}
   .agenda-person{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:850;letter-spacing:-.025em}
   .agenda-sub{margin:4px 0 0 60px;color:#909ba6;font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .agenda-item.memo .agenda-sub{margin-left:21px}
+  .agenda-item.general .agenda-sub,.agenda-item.memo .agenda-sub{margin-left:21px}
   .legend.is-hidden{display:none}
   .weekdays{flex:0 0 auto;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:#0f141a}
   .weekday{text-align:center;padding:11px 0 10px;font-size:14px;font-weight:750;color:var(--muted)}
@@ -169,7 +169,7 @@
   .month-page{height:33.333333%;width:100%;overflow:hidden}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(6,minmax(0,1fr));height:100%;width:100%}
 
-  /* [국소 재설립] 달력 셀은 원래의 날짜/근무/공휴일 3단 구조로 복원. 개인 메모 조작부는 셀 안에 두지 않는다. */
+  /* [국소 재설립] 달력 셀은 원래의 날짜/근무/공휴일 3단 구조로 복원. 개인 일정 조작부는 셀 안에 두지 않는다. */
   .day{min-height:0;padding:3px 4px 2px;border-right:1px solid rgba(39,48,58,.72);border-bottom:1px solid rgba(39,48,58,.72);position:relative;background:var(--panel);display:grid;grid-template-rows:24px 29px 13px;align-content:start;cursor:pointer;user-select:none}
   .day:nth-child(7n){border-right:0}
   .day:nth-last-child(-n+7){border-bottom:0}
@@ -190,7 +190,8 @@
   .badge.work{color:rgba(85,170,255,.78);background:transparent;border-color:transparent}
   .badge.off{color:rgba(213,106,114,.82);background:transparent;border-color:transparent}
   .holiday-name{margin:0;min-height:13px;padding:0;text-align:center;color:var(--sun);font-size:8.5px;font-weight:700;line-height:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .day-flags{position:absolute;right:3px;top:4px;display:flex;align-items:center;gap:1px;pointer-events:none}
+  /* [국소 재설립] 일정 표시는 날짜 옆이 아니라 공휴일 아래 셀 하단 중앙에 고정 */
+  .day-flags{position:absolute;left:2px;right:2px;bottom:3px;display:flex;align-items:center;justify-content:center;gap:2px;pointer-events:none}
   .day-flag{font-size:10.5px;line-height:1;filter:saturate(.86);opacity:.92}
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
@@ -215,6 +216,9 @@
   .duty-popup-card.primary .duty-popup-label{color:#ffad5a}
   .duty-popup-card.secondary .duty-popup-label{color:#d98a4c}
   .duty-popup-team{font-size:21px;font-weight:950;letter-spacing:-.045em;line-height:1.1;color:#f5f7f9}
+  .duty-popup-actions{display:flex;justify-content:flex-end;margin-top:11px}
+  .duty-popup-add{min-height:38px;padding:0 14px;border:1px solid #3b4652;border-radius:11px;background:#1a2129;color:#e9edf1;font-size:13.5px;font-weight:850;letter-spacing:-.025em;cursor:pointer}
+  .duty-popup-add:active{background:#222b34}
   @media (max-height:700px){.duty-popup{top:23dvh}}
 
   /* [재설립] 달력 바깥 메모 버튼에서 여는 개인 일정 편집 오버레이 */
@@ -296,7 +300,7 @@
   <div class="top">
     <h1>통수본</h1>
     <div class="top-actions">
-      <button type="button" class="memo-btn" id="memoBtn">메모</button>
+      <button type="button" class="memo-btn" id="memoBtn">일정</button>
       <div class="team-wrap">
         <select id="teamSelect" aria-label="팀 선택">
           <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
@@ -353,6 +357,9 @@
       <strong class="duty-popup-team" id="dutyPopupSecondary">-</strong>
     </div>
   </div>
+  <div class="duty-popup-actions">
+    <button type="button" class="duty-popup-add" id="dutyPopupAddMemo">+ 일정 추가</button>
+  </div>
 </div>
 
 <!-- [재설립] 개인 일정 전용 오버레이. 근무표 DOM과 분리 -->
@@ -368,26 +375,26 @@
     <div class="personal-body">
       <div class="personal-date-control">
         <label class="personal-date-label" for="personalDateInput">날짜</label>
-        <input class="personal-date-input" id="personalDateInput" type="date" aria-label="개인 일정 날짜" />
+        <input class="personal-date-input" id="personalDateInput" type="date" aria-label="일정 날짜" />
       </div>
       <div class="personal-list" id="personalList"></div>
       <div class="personal-form">
-        <div class="personal-form-title" id="personalFormTitle">메모 추가</div>
-        <div class="personal-kind" role="group" aria-label="메모 구분">
-          <button type="button" class="personal-kind-btn active" id="kindMemo">📌 메모</button>
+        <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
+        <div class="personal-kind" role="group" aria-label="일정 구분">
+          <button type="button" class="personal-kind-btn active" id="kindMemo">📌 일반</button>
           <button type="button" class="personal-kind-btn" id="kindInvestigation">📠 조사</button>
         </div>
+        <div class="field-group">
+          <input class="personal-field" id="personalTime" type="time" aria-label="일정 시간" />
+        </div>
         <div class="field-group" id="memoFields">
-          <input class="personal-field" id="personalTitle" type="text" maxlength="80" placeholder="메모 제목" aria-label="메모 제목" />
+          <input class="personal-field" id="personalTitle" type="text" maxlength="80" placeholder="제목 (선택)" aria-label="일반 일정 제목" />
         </div>
         <div class="field-group is-hidden" id="investigationFields">
-          <div class="personal-row">
-            <input class="personal-field" id="personalTime" type="time" aria-label="조사 시간" />
-            <input class="personal-field" id="personalPerson" type="text" maxlength="80" placeholder="대상자" aria-label="조사 대상자" />
-          </div>
-          <input class="personal-field" id="personalSubject" type="text" maxlength="120" placeholder="조사 내용" aria-label="조사 내용" />
+          <input class="personal-field" id="personalPerson" type="text" maxlength="80" placeholder="대상자 (선택)" aria-label="조사 대상자" />
+          <input class="personal-field" id="personalSubject" type="text" maxlength="120" placeholder="조사 내용 (선택)" aria-label="조사 내용" />
         </div>
-        <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 내용 (선택)" aria-label="추가 메모"></textarea>
+        <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 (선택)" aria-label="메모"></textarea>
         <div class="personal-form-actions">
           <button type="button" class="personal-save" id="personalSave">저장</button>
           <button type="button" class="personal-cancel" id="personalCancel">수정 취소</button>
@@ -435,6 +442,7 @@
   const dutyPopupPrimary = document.getElementById('dutyPopupPrimary');
   const dutyPopupSecondary = document.getElementById('dutyPopupSecondary');
   const dutyPopupClose = document.getElementById('dutyPopupClose');
+  const dutyPopupAddMemo = document.getElementById('dutyPopupAddMemo');
   const workTab = document.getElementById('workTab');
   const investigationTab = document.getElementById('investigationTab');
   const agenda = document.getElementById('agenda');
@@ -762,13 +770,17 @@
     requestAnimationFrame(()=>openToast(duration));
   }
 
+  let dutyPopupDateKey = null;
+
   function closeDutyPopup(){
     dutyPopup.classList.remove('show');
     dutyPopup.setAttribute('aria-hidden','true');
+    dutyPopupDateKey = null;
   }
 
   function showDutyPopupForDate(y,m,d){
     const key = keyOf(y,m,d);
+    dutyPopupDateKey = key;
     const holiday = holidayForKey(key);
     const roles = dutyRolesForDate(y,m,d);
     const weekday = ['일','월','화','수','목','금','토'][new Date(y,m,d).getDay()];
@@ -784,21 +796,21 @@
   }
 
   /* =========================================================
-     [국소 제거 및 재설립] 공통 메모 저장소
-     - 메모/조사를 같은 저장소에서 kind로만 구분
-     - 기존 v1 데이터는 자동으로 📌 메모로 승격
-     - 근무표와 조사일정은 같은 데이터를 서로 다른 방식으로 보여줌
+     [국소 제거 및 재설립] 공통 일정 저장소
+     - 일반/조사를 같은 저장소에서 kind로만 구분
+     - 기존 v1 메모 데이터는 자동으로 📌 일반 일정으로 승격
+     - 근무표와 조사일정은 같은 일정 데이터를 서로 다른 방식으로 보여줌
      ========================================================= */
   const PERSONAL_STORAGE_KEY = 'tongsu_personal_schedule_v1';
   let currentView = 'work';
-  let activePersonalKind = 'memo';
+  let activePersonalKind = 'general';
   let activePersonalDateKey = null;
   let editingPersonalId = null;
   let detailDateKey = null;
   let detailItemId = null;
 
   function freshPersonalStore(){
-    return {schema:2,updatedAt:null,dates:{}};
+    return {schema:3,updatedAt:null,dates:{}};
   }
 
   function makePersonalId(){
@@ -812,7 +824,7 @@
     for (const [key,list] of Object.entries(dates)){
       if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(list)) continue;
       const clean = list.filter(item=>item && typeof item === 'object').map(item=>{
-        const kind = item.kind === 'investigation' ? 'investigation' : 'memo';
+        const kind = item.kind === 'investigation' ? 'investigation' : 'general';
         return {
           id:String(item.id || makePersonalId()),
           kind,
@@ -830,7 +842,7 @@
       });
       if (clean.length) cleanDates[key] = clean;
     }
-    return {schema:2,updatedAt:value.updatedAt || null,dates:cleanDates};
+    return {schema:3,updatedAt:value.updatedAt || null,dates:cleanDates};
   }
 
   function loadPersonalStore(){
@@ -845,7 +857,7 @@
   let personalStore = loadPersonalStore();
 
   function savePersonalStore(){
-    personalStore.schema = 2;
+    personalStore.schema = 3;
     personalStore.updatedAt = new Date().toISOString();
     localStorage.setItem(PERSONAL_STORAGE_KEY,JSON.stringify(personalStore));
   }
@@ -870,7 +882,7 @@
     const title = String(item.title || '').trim();
     if (title) return title;
     const memo = String(item.memo || '').trim().replace(/\s+/g,' ');
-    return memo || '메모';
+    return memo || '일반 일정';
   }
 
   function parseKey(key){
@@ -913,16 +925,14 @@
   }
 
   function setPersonalKind(kind){
-    activePersonalKind = kind === 'investigation' ? 'investigation' : 'memo';
+    activePersonalKind = kind === 'investigation' ? 'investigation' : 'general';
     const isInvestigation = activePersonalKind === 'investigation';
     kindMemo.classList.toggle('active',!isInvestigation);
     kindInvestigation.classList.toggle('active',isInvestigation);
     memoFields.classList.toggle('is-hidden',isInvestigation);
     investigationFields.classList.toggle('is-hidden',!isInvestigation);
-    personalFormTitle.textContent = editingPersonalId
-      ? (isInvestigation ? '조사 수정' : '메모 수정')
-      : (isInvestigation ? '조사 추가' : '메모 추가');
-    personalMemo.placeholder = isInvestigation ? '추가 메모 (선택)' : '메모 내용 (선택)';
+    personalFormTitle.textContent = editingPersonalId ? '일정 수정' : '일정 추가';
+    personalMemo.placeholder = '메모 (선택)';
   }
 
   function resetPersonalForm(){
@@ -934,7 +944,7 @@
     personalMemo.value = '';
     personalSave.textContent = '저장';
     personalCancel.classList.remove('show');
-    setPersonalKind('memo');
+    setPersonalKind('general');
   }
 
   function renderPersonalList(){
@@ -944,7 +954,7 @@
     if (!items.length){
       const empty = document.createElement('div');
       empty.className = 'personal-list-empty';
-      empty.textContent = '등록된 메모나 조사 일정이 없습니다.';
+      empty.textContent = '등록된 일정이 없습니다.';
       personalList.appendChild(empty);
       return;
     }
@@ -1030,6 +1040,7 @@
   }
 
   function openPersonalEditor(key = defaultPersonalDateKey()){
+    closeDutyPopup();
     activePersonalDateKey = key;
     resetPersonalForm();
     refreshPersonalDateContext();
@@ -1087,15 +1098,14 @@
     const subject = personalSubject.value.trim();
     const memo = personalMemo.value.trim();
 
+    // [국소 재설립] 날짜+구분만 고정. 각 유형의 선택 필드 중 하나만 있어도 저장한다.
     if (kind === 'investigation'){
-      if (!person && !subject && !memo){
-        showToast('대상자나 조사 내용을 입력하세요.',1600);
-        personalPerson.focus();
+      if (!time && !person && !subject && !memo){
+        showToast('내용이 비어 있습니다.',1400);
         return;
       }
-    }else if (!title && !memo){
-      showToast('메모 내용을 입력하세요.',1600);
-      personalTitle.focus();
+    }else if (!time && !title && !memo){
+      showToast('내용이 비어 있습니다.',1400);
       return;
     }
 
@@ -1106,8 +1116,8 @@
       const item = list.find(x=>x.id===editingPersonalId);
       if (item){
         item.kind = kind;
-        item.time = kind === 'investigation' ? time : '';
-        item.title = kind === 'memo' ? title : '';
+        item.time = time;
+        item.title = kind === 'general' ? title : '';
         item.person = kind === 'investigation' ? person : '';
         item.subject = kind === 'investigation' ? subject : '';
         item.memo = memo;
@@ -1117,8 +1127,8 @@
       list.push({
         id:makePersonalId(),
         kind,
-        time:kind === 'investigation' ? time : '',
-        title:kind === 'memo' ? title : '',
+        time,
+        title:kind === 'general' ? title : '',
         person:kind === 'investigation' ? person : '',
         subject:kind === 'investigation' ? subject : '',
         memo,
@@ -1156,16 +1166,17 @@
     const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
     const holiday = holidayForKey(key);
     detailShift.textContent = `${selectedTeam}팀 · ${shiftLabel}${holiday ? ` · ${holiday.name}` : ''}`;
-    detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '📌 메모';
+    detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '📌 일반';
     detailGrid.innerHTML = '';
     if (item.kind === 'investigation'){
-      addDetailRow('시간',item.time || '시간 미정');
-      addDetailRow('대상자',item.person || '대상 미정');
+      addDetailRow('시간',item.time || '');
+      addDetailRow('대상자',item.person || '');
       addDetailRow('내용',item.subject || '');
       addDetailRow('메모',item.memo || '');
     }else{
-      addDetailRow('제목',item.title || '메모');
-      addDetailRow('내용',item.memo || '');
+      addDetailRow('시간',item.time || '');
+      addDetailRow('제목',item.title || '');
+      addDetailRow('메모',item.memo || '');
     }
     detailOverlay.classList.add('open');
     detailOverlay.setAttribute('aria-hidden','false');
@@ -1190,7 +1201,7 @@
     if (!keys.length){
       const empty = document.createElement('div');
       empty.className = 'agenda-empty';
-      empty.textContent = '이 달에 등록된 조사 일정이나 메모가 없습니다.';
+      empty.textContent = '이 달에 등록된 일정이 없습니다.';
       agenda.appendChild(empty);
       return;
     }
@@ -1221,7 +1232,7 @@
       for (const item of items){
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `agenda-item ${item.kind === 'investigation' ? 'investigation' : 'memo'}`;
+        button.className = `agenda-item ${item.kind === 'investigation' ? 'investigation' : 'general'}`;
 
         const main = document.createElement('div');
         main.className = 'agenda-item-main';
@@ -1231,28 +1242,41 @@
         emoji.textContent = item.kind === 'investigation' ? '📠' : '📌';
         main.appendChild(emoji);
 
-        if (item.kind === 'investigation'){
+        if (item.time){
           const time = document.createElement('span');
           time.className = 'agenda-time';
-          time.textContent = item.time || '미정';
-          const person = document.createElement('span');
-          person.className = 'agenda-person';
-          person.textContent = item.person || '대상 미정';
-          main.append(time,person);
+          time.textContent = item.time;
+          main.appendChild(time);
+        }
+
+        if (item.kind === 'investigation'){
+          if (item.person){
+            const person = document.createElement('span');
+            person.className = 'agenda-person';
+            person.textContent = item.person;
+            main.appendChild(person);
+          }else if (!item.time){
+            const fallback = document.createElement('span');
+            fallback.className = 'agenda-person';
+            fallback.textContent = personalDisplayText(item);
+            main.appendChild(fallback);
+          }
           button.appendChild(main);
 
-          const subText = item.subject || item.memo;
-          if (subText){
+          const subParts = [];
+          if (item.subject && !( !item.time && !item.person )) subParts.push(item.subject);
+          if (item.memo) subParts.push(item.memo);
+          if (subParts.length){
             const sub = document.createElement('div');
             sub.className = 'agenda-sub';
-            sub.textContent = subText;
+            sub.textContent = subParts.join(' · ');
             button.appendChild(sub);
           }
         }else{
-          const person = document.createElement('span');
-          person.className = 'agenda-person';
-          person.textContent = personalDisplayText(item);
-          main.appendChild(person);
+          const label = document.createElement('span');
+          label.className = 'agenda-person';
+          label.textContent = personalDisplayText(item);
+          main.appendChild(label);
           button.appendChild(main);
           if (item.memo && item.title){
             const sub = document.createElement('div');
@@ -1272,7 +1296,7 @@
   }
 
   memoBtn.addEventListener('click',()=>openPersonalEditor());
-  kindMemo.addEventListener('click',()=>setPersonalKind('memo'));
+  kindMemo.addEventListener('click',()=>setPersonalKind('general'));
   kindInvestigation.addEventListener('click',()=>setPersonalKind('investigation'));
 
   personalDateInput.addEventListener('change',()=>{
@@ -1305,6 +1329,11 @@
   });
 
   dutyPopupClose.addEventListener('click',closeDutyPopup);
+  dutyPopupAddMemo.addEventListener('click',()=>{
+    const key = dutyPopupDateKey;
+    if (!key) return;
+    openPersonalEditor(key);
+  });
 
   workTab.addEventListener('click',()=>setView('work'));
   investigationTab.addEventListener('click',()=>setView('agenda'));
@@ -1388,12 +1417,12 @@
       h.textContent = holiday ? holiday.label : '';
       cell.appendChild(h);
 
-      // [국소 재설립] 셀 공간은 늘리지 않고, 존재 여부만 이모지로 표시.
-      // 조사=📠, 일반 메모=📌
+      // [국소 재설립] 존재 여부는 공휴일보다 아래, 셀 최하단 중앙에 이모지로 표시.
+      // 조사=📠, 일반 일정=📌
       const dayItems = personalItemsForKey(key);
       if (dayItems.length){
         const hasInvestigation = dayItems.some(item=>item.kind==='investigation');
-        const hasMemo = dayItems.some(item=>item.kind!=='investigation');
+        const hasGeneral = dayItems.some(item=>item.kind!=='investigation');
         const flags = document.createElement('div');
         flags.className = 'day-flags';
         if (hasInvestigation){
@@ -1403,11 +1432,11 @@
           flag.setAttribute('aria-label','조사 일정 있음');
           flags.appendChild(flag);
         }
-        if (hasMemo){
+        if (hasGeneral){
           const flag = document.createElement('span');
           flag.className = 'day-flag';
           flag.textContent = '📌';
-          flag.setAttribute('aria-label','메모 있음');
+          flag.setAttribute('aria-label','일반 일정 있음');
           flags.appendChild(flag);
         }
         cell.appendChild(flags);
