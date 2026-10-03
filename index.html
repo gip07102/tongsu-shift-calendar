@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수팀</title>
-<meta name="tongsu-build" content="20261003-schedule-calendar-v12" />
+<meta name="tongsu-build" content="20261003-schedule-calendar-v13" />
 <style>
   :root{
     color-scheme:dark;
@@ -239,7 +239,35 @@
   .personal-date-title{margin:0;font-size:19px;font-weight:850;letter-spacing:-.035em;line-height:1.25}
   .personal-duty-info{margin-top:4px;color:var(--muted);font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .personal-close{flex:0 0 auto;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);color:var(--text);font-size:18px;font-weight:700;line-height:1;cursor:pointer}
-  .personal-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:13px 14px 18px}
+  /* [국소 제거·재설립] 일정 편집 오버레이 스크롤 v13
+     - 오버레이 내부는 수직 pan만 허용한다.
+     - 좌우/대각선 드래그로 시트가 밀리는 감각을 제거한다. */
+  .personal-overlay{overflow:hidden}
+  .personal-sheet{min-width:0;max-width:100%;overscroll-behavior-x:none}
+  .personal-body{
+    flex:1 1 auto;
+    min-width:0;
+    min-height:0;
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior-x:none;
+    overscroll-behavior-y:contain;
+    touch-action:pan-y;
+    -webkit-overflow-scrolling:touch;
+    padding:13px 14px 18px;
+  }
+  .personal-body > *,
+  .personal-existing,
+  .personal-form,
+  .personal-list,
+  .personal-card,
+  .personal-row,
+  .personal-time-row,
+  .personal-date-control{min-width:0;max-width:100%}
+  .personal-date-input,
+  .personal-field{min-width:0;max-width:100%}
   .personal-existing{margin-bottom:12px;padding:10px;border:1px solid #2b3641;border-radius:14px;background:#0e141a}
   .personal-section-title{margin:0 0 8px;color:#aeb9c4;font-size:12px;font-weight:900;letter-spacing:-.02em}
   .personal-list{display:flex;flex-direction:column;gap:8px}
