@@ -7,7 +7,7 @@
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
 <title>통수본</title>
-<meta name="tongsu-build" content="20261002-schedule-general-investigation-v10" />
+<meta name="tongsu-build" content="20261003-investigation-calendar-v11" />
 <style>
   :root{
     color-scheme:dark;
@@ -45,7 +45,7 @@
   .memo-btn,
   .todaybtn,
   .day,
-  .agenda-item,
+  .investigation-cell-item,
   .duty-popup-close,
   .personal-close,
   .personal-mini-btn,
@@ -130,35 +130,6 @@
     overscroll-behavior:contain;
   }
   .calendar.is-hidden{display:none}
-  .agenda{
-    flex:1 1 auto;
-    min-height:0;
-    overflow:auto;
-    -webkit-overflow-scrolling:touch;
-    border:1px solid var(--line);
-    border-radius:18px;
-    background:var(--panel);
-    padding:6px 10px 14px;
-    touch-action:pan-y;
-  }
-  .agenda.is-hidden{display:none}
-  .agenda-empty{height:100%;min-height:180px;display:flex;align-items:center;justify-content:center;text-align:center;color:#707b86;font-size:13px;font-weight:700;line-height:1.6;padding:24px}
-  .agenda-day{padding:9px 0 11px;border-bottom:1px solid rgba(39,48,58,.82)}
-  .agenda-day:last-child{border-bottom:0}
-  .agenda-day-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
-  .agenda-day-date{font-size:14px;font-weight:900;letter-spacing:-.035em;color:#e9edf1}
-  .agenda-shift{font-size:11px;font-weight:850;letter-spacing:-.025em;color:#a6b0ba;border:1px solid #303945;border-radius:999px;padding:4px 8px;background:#151b21;white-space:nowrap}
-  .agenda-shift.duty-primary{color:#ffad5a;border-color:rgba(255,159,67,.28);background:rgba(255,159,67,.09)}
-  .agenda-shift.duty-secondary{color:#d98a4c;border-color:rgba(196,116,52,.20);background:rgba(196,116,52,.07)}
-  .agenda-items{display:flex;flex-direction:column;gap:6px}
-  .agenda-item{width:100%;border:1px solid #29323c;border-radius:12px;background:#151a20;color:var(--text);text-align:left;padding:9px 10px;cursor:pointer}
-  .agenda-item:active{background:#1b222a}
-  .agenda-item-main{display:flex;align-items:center;gap:7px;min-width:0}
-  .agenda-emoji{flex:0 0 auto;font-size:14px;line-height:1}
-  .agenda-time{flex:0 0 auto;color:#a8b4c0;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;min-width:39px}
-  .agenda-person{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;font-weight:850;letter-spacing:-.025em}
-  .agenda-sub{margin:4px 0 0 60px;color:#909ba6;font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .agenda-item.general .agenda-sub,.agenda-item.memo .agenda-sub{margin-left:21px}
   .legend.is-hidden{display:none}
   .weekdays{flex:0 0 auto;display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:#0f141a}
   .weekday{text-align:center;padding:11px 0 10px;font-size:14px;font-weight:750;color:var(--muted)}
@@ -193,6 +164,28 @@
   /* [국소 재설립] 일정 표시는 날짜 옆이 아니라 공휴일 아래 셀 하단 중앙에 고정 */
   .day-flags{position:absolute;left:2px;right:2px;bottom:3px;display:flex;align-items:center;justify-content:center;gap:2px;pointer-events:none}
   .day-flag{font-size:10.5px;line-height:1;filter:saturate(.86);opacity:.92}
+
+  /* [국소 제거·재설립 v11] 조사일정은 별도 목록이 아니라 근무표와 동일한 월간 달력 폼을 사용한다.
+     근무 텍스트는 제거하고, 기존 근무 색계열을 셀 배경 틴트로만 남긴다. */
+  .calendar.investigation-mode .day{grid-template-rows:24px minmax(0,1fr);padding:3px 3px 3px}
+  .calendar.investigation-mode .day.shift-bg-primary{background:rgba(255,159,67,.145)}
+  .calendar.investigation-mode .day.shift-bg-secondary{background:rgba(200,119,55,.115)}
+  .calendar.investigation-mode .day.shift-bg-rest{background:rgba(255,94,126,.125)}
+  .calendar.investigation-mode .day.shift-bg-work{background:rgba(85,170,255,.115)}
+  .calendar.investigation-mode .day.shift-bg-off{background:rgba(213,106,114,.105)}
+  .calendar.investigation-mode .day.other{opacity:.34}
+  .calendar.investigation-mode .day.today{box-shadow:inset 0 0 0 2px rgba(244,246,248,.92)}
+  .investigation-cell-list{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:3px;align-self:stretch;padding:1px 0 0}
+  .investigation-cell-item{width:100%;min-width:0;border:0;border-radius:6px;background:rgba(6,9,12,.22);color:var(--text);padding:3px 2px 4px;display:block;text-align:center;cursor:pointer;overflow:hidden}
+  .investigation-cell-item:active{background:rgba(255,255,255,.08)}
+  .investigation-cell-time{display:block;font-size:9px;font-weight:850;line-height:1.1;color:#c6d0da;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .investigation-cell-person{display:block;margin-top:1px;font-size:10px;font-weight:900;line-height:1.15;color:#f3f6f8;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .investigation-cell-more{font-size:9px;font-weight:850;line-height:1.1;color:#aab4be;text-align:center;padding-top:1px}
+
+  @media (min-width:600px){
+    .investigation-cell-time{font-size:10px}
+    .investigation-cell-person{font-size:11px}
+  }
 
   .legend{flex:0 0 auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 8px 1px;color:var(--muted);font-size:13px}
   .legend span{display:inline-flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.d1{background:var(--duty)}.d2{background:var(--rest)}.d3{background:var(--work)}.d4{background:var(--off)}
@@ -331,8 +324,6 @@
     </div>
   </section>
 
-  <section class="agenda is-hidden" id="agenda" aria-label="조사 일정"></section>
-
   <div class="legend" id="legend" aria-label="근무 표시">
     <span><i class="dot" style="background:#ffad5a"></i>주당직</span><span><i class="dot" style="background:#d98a4c"></i>부당직</span><span><i class="dot d2"></i>휴</span><span><i class="dot d3"></i>일</span><span><i class="dot d4"></i>비</span>
   </div>
@@ -445,7 +436,6 @@
   const dutyPopupAddMemo = document.getElementById('dutyPopupAddMemo');
   const workTab = document.getElementById('workTab');
   const investigationTab = document.getElementById('investigationTab');
-  const agenda = document.getElementById('agenda');
   const legend = document.getElementById('legend');
 
   // [재설립] 달력 바깥 개인 일정 UI 참조
@@ -838,7 +828,7 @@
         };
       }).filter(item=>{
         if (item.kind === 'investigation') return item.time || item.person.trim() || item.subject.trim() || item.memo.trim();
-        return item.title.trim() || item.memo.trim();
+        return item.time || item.title.trim() || item.memo.trim();
       });
       if (clean.length) cleanDates[key] = clean;
     }
@@ -909,19 +899,33 @@
     return '';
   }
 
+  function investigationShiftBackgroundClass(label){
+    if (label === '주당직') return 'shift-bg-primary';
+    if (label === '부당직') return 'shift-bg-secondary';
+    if (label === '휴') return 'shift-bg-rest';
+    if (label === '일') return 'shift-bg-work';
+    if (label === '비') return 'shift-bg-off';
+    return '';
+  }
+
   function setView(next){
     closeDutyPopup();
-    currentView = next === 'agenda' ? 'agenda' : 'work';
+    currentView = next === 'investigation' ? 'investigation' : 'work';
     const work = currentView === 'work';
-    calendar.classList.toggle('is-hidden',!work);
-    agenda.classList.toggle('is-hidden',work);
-    legend.classList.toggle('is-hidden',!work);
+
+    // [재설립] 두 탭 모두 같은 월간 달력 DOM을 사용한다.
+    calendar.classList.remove('is-hidden');
+    calendar.classList.toggle('investigation-mode',!work);
+    legend.classList.remove('is-hidden');
+    calendar.setAttribute('aria-label',work ? '근무 달력' : '조사 일정 달력');
+
     workTab.classList.toggle('active',work);
     investigationTab.classList.toggle('active',!work);
     workTab.setAttribute('aria-selected',work ? 'true' : 'false');
     investigationTab.setAttribute('aria-selected',work ? 'false' : 'true');
-    if (!work) renderAgenda();
-    else requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
+
+    buildMonthTrack();
+    requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
   }
 
   function setPersonalKind(kind){
@@ -1085,7 +1089,6 @@
     if (editingPersonalId===id) resetPersonalForm();
     renderPersonalList();
     buildMonthTrack();
-    renderAgenda();
     showToast('삭제했습니다.',1200);
   }
 
@@ -1141,7 +1144,6 @@
     resetPersonalForm();
     renderPersonalList();
     buildMonthTrack();
-    renderAgenda();
     showToast(wasEditing ? '수정했습니다.' : '저장했습니다.',1200);
   }
 
@@ -1189,112 +1191,6 @@
     detailItemId = null;
   }
 
-  function renderAgenda(){
-    if (!agenda) return;
-    agenda.innerHTML = '';
-    const prefix = `${viewYear}-${pad(viewMonth+1)}-`;
-    const keys = Object.keys(personalStore.dates)
-      .filter(key=>key.startsWith(prefix))
-      .filter(key=>personalItemsForKey(key).length)
-      .sort();
-
-    if (!keys.length){
-      const empty = document.createElement('div');
-      empty.className = 'agenda-empty';
-      empty.textContent = '이 달에 등록된 일정이 없습니다.';
-      agenda.appendChild(empty);
-      return;
-    }
-
-    for (const key of keys){
-      const items = personalItemsForKey(key);
-      const {y,m,d,date} = parseKey(key);
-      const day = document.createElement('section');
-      day.className = 'agenda-day';
-
-      const head = document.createElement('div');
-      head.className = 'agenda-day-head';
-
-      const dateText = document.createElement('div');
-      dateText.className = 'agenda-day-date';
-      dateText.textContent = `${m}/${d} ${weekdayKo(date)}`;
-
-      const shift = document.createElement('div');
-      const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
-      shift.className = `agenda-shift ${shiftChipClass(shiftLabel)}`;
-      shift.textContent = shiftLabel;
-
-      head.append(dateText,shift);
-
-      const list = document.createElement('div');
-      list.className = 'agenda-items';
-
-      for (const item of items){
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `agenda-item ${item.kind === 'investigation' ? 'investigation' : 'general'}`;
-
-        const main = document.createElement('div');
-        main.className = 'agenda-item-main';
-
-        const emoji = document.createElement('span');
-        emoji.className = 'agenda-emoji';
-        emoji.textContent = item.kind === 'investigation' ? '📠' : '📌';
-        main.appendChild(emoji);
-
-        if (item.time){
-          const time = document.createElement('span');
-          time.className = 'agenda-time';
-          time.textContent = item.time;
-          main.appendChild(time);
-        }
-
-        if (item.kind === 'investigation'){
-          if (item.person){
-            const person = document.createElement('span');
-            person.className = 'agenda-person';
-            person.textContent = item.person;
-            main.appendChild(person);
-          }else if (!item.time){
-            const fallback = document.createElement('span');
-            fallback.className = 'agenda-person';
-            fallback.textContent = personalDisplayText(item);
-            main.appendChild(fallback);
-          }
-          button.appendChild(main);
-
-          const subParts = [];
-          if (item.subject && !( !item.time && !item.person )) subParts.push(item.subject);
-          if (item.memo) subParts.push(item.memo);
-          if (subParts.length){
-            const sub = document.createElement('div');
-            sub.className = 'agenda-sub';
-            sub.textContent = subParts.join(' · ');
-            button.appendChild(sub);
-          }
-        }else{
-          const label = document.createElement('span');
-          label.className = 'agenda-person';
-          label.textContent = personalDisplayText(item);
-          main.appendChild(label);
-          button.appendChild(main);
-          if (item.memo && item.title){
-            const sub = document.createElement('div');
-            sub.className = 'agenda-sub';
-            sub.textContent = item.memo;
-            button.appendChild(sub);
-          }
-        }
-
-        button.addEventListener('click',()=>openDetail(key,item.id));
-        list.appendChild(button);
-      }
-
-      day.append(head,list);
-      agenda.appendChild(day);
-    }
-  }
-
   memoBtn.addEventListener('click',()=>openPersonalEditor());
   kindMemo.addEventListener('click',()=>setPersonalKind('general'));
   kindInvestigation.addEventListener('click',()=>setPersonalKind('investigation'));
@@ -1336,7 +1232,7 @@
   });
 
   workTab.addEventListener('click',()=>setView('work'));
-  investigationTab.addEventListener('click',()=>setView('agenda'));
+  investigationTab.addEventListener('click',()=>setView('investigation'));
 
   window.addEventListener('keydown',e=>{
     if (e.key!=='Escape') return;
@@ -1345,22 +1241,7 @@
     else if (dutyPopup.classList.contains('show')) closeDutyPopup();
   });
 
-  // 조사일정은 세로 스크롤을 유지하고, 좌우 스와이프로 월 이동.
-  let agendaSwipeStart = null;
-  agenda.addEventListener('touchstart',e=>{
-    if (e.touches.length!==1) return;
-    agendaSwipeStart = {x:e.touches[0].clientX,y:e.touches[0].clientY};
-  },{passive:true});
-  agenda.addEventListener('touchend',e=>{
-    if (!agendaSwipeStart || !e.changedTouches.length) return;
-    const dx = e.changedTouches[0].clientX - agendaSwipeStart.x;
-    const dy = e.changedTouches[0].clientY - agendaSwipeStart.y;
-    agendaSwipeStart = null;
-    if (Math.abs(dx) < 58 || Math.abs(dx) <= Math.abs(dy)) return;
-    applyMonthDelta(dx < 0 ? 1 : -1);
-    buildMonthTrack();
-    agenda.scrollTop = 0;
-  },{passive:true});
+  // v11: 조사일정도 근무표와 동일한 달력 제스처(상하 월 이동)를 사용한다.
 
   let suppressTapUntil = 0;
 
@@ -1370,6 +1251,7 @@
     page.dataset.year = String(pageYear);
     page.dataset.month = String(pageMonth);
 
+    const investigationMode = currentView === 'investigation';
     const grid = document.createElement('div');
     grid.className = 'grid';
     const first = new Date(pageYear,pageMonth,1);
@@ -1392,6 +1274,11 @@
       if (wd === 6) cell.classList.add('sat');
       if (holiday) cell.classList.add('holiday');
       if (m === pageMonth && isToday(y,m,d)) cell.classList.add('today');
+      if (investigationMode){
+        cell.classList.add('investigation-day');
+        const bgClass = investigationShiftBackgroundClass(shift);
+        if (bgClass) cell.classList.add(bgClass);
+      }
 
       const numRow = document.createElement('div');
       numRow.className = 'daynumrow';
@@ -1401,53 +1288,99 @@
       numRow.appendChild(n);
       cell.appendChild(numRow);
 
-      const wrap = document.createElement('div');
-      wrap.className = 'shift';
-      if (shift){
-        const badge = document.createElement('span');
-        badge.className = `badge ${badgeClass(shift)}`;
-        badge.textContent = shift;
-        wrap.appendChild(badge);
-      }
-      cell.appendChild(wrap);
+      if (investigationMode){
+        // [재설립] 조사일정 화면: 근무 텍스트/공휴일명/이모지는 제거하고
+        // 날짜 + 조사 약속의 시간/대상자만 직접 보여준다.
+        const investigations = personalItemsForKey(key).filter(item=>item.kind==='investigation');
+        const list = document.createElement('div');
+        list.className = 'investigation-cell-list';
 
-      // [재설립] 공휴일 행을 항상 생성하여 개인일정 행의 위치를 날짜마다 고정.
-      const h = document.createElement('div');
-      h.className = 'holiday-name';
-      h.textContent = holiday ? holiday.label : '';
-      cell.appendChild(h);
+        const visible = investigations.slice(0,2);
+        for (const item of visible){
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'investigation-cell-item';
+          button.setAttribute('aria-label',`${item.time || ''} ${item.person || item.subject || item.memo || '조사'}`.trim());
 
-      // [국소 재설립] 존재 여부는 공휴일보다 아래, 셀 최하단 중앙에 이모지로 표시.
-      // 조사=📠, 일반 일정=📌
-      const dayItems = personalItemsForKey(key);
-      if (dayItems.length){
-        const hasInvestigation = dayItems.some(item=>item.kind==='investigation');
-        const hasGeneral = dayItems.some(item=>item.kind!=='investigation');
-        const flags = document.createElement('div');
-        flags.className = 'day-flags';
-        if (hasInvestigation){
-          const flag = document.createElement('span');
-          flag.className = 'day-flag';
-          flag.textContent = '📠';
-          flag.setAttribute('aria-label','조사 일정 있음');
-          flags.appendChild(flag);
+          if (item.time){
+            const time = document.createElement('span');
+            time.className = 'investigation-cell-time';
+            time.textContent = item.time;
+            button.appendChild(time);
+          }
+
+          const personText = String(item.person || item.subject || item.memo || '조사').trim();
+          if (personText){
+            const person = document.createElement('span');
+            person.className = 'investigation-cell-person';
+            person.textContent = personText;
+            button.appendChild(person);
+          }
+
+          button.addEventListener('click',e=>{
+            e.stopPropagation();
+            if (Date.now() < suppressTapUntil) return;
+            openDetail(key,item.id);
+          });
+          list.appendChild(button);
         }
-        if (hasGeneral){
-          const flag = document.createElement('span');
-          flag.className = 'day-flag';
-          flag.textContent = '📌';
-          flag.setAttribute('aria-label','일반 일정 있음');
-          flags.appendChild(flag);
+
+        if (investigations.length > visible.length){
+          const more = document.createElement('div');
+          more.className = 'investigation-cell-more';
+          more.textContent = `+${investigations.length-visible.length}`;
+          list.appendChild(more);
         }
-        cell.appendChild(flags);
+
+        cell.appendChild(list);
+        // 빈 공간 탭은 오동작을 만들지 않는다. 상세는 조사 항목 자체를 눌렀을 때만 연다.
+      }else{
+        const wrap = document.createElement('div');
+        wrap.className = 'shift';
+        if (shift){
+          const badge = document.createElement('span');
+          badge.className = `badge ${badgeClass(shift)}`;
+          badge.textContent = shift;
+          wrap.appendChild(badge);
+        }
+        cell.appendChild(wrap);
+
+        // 근무표에서는 기존 공휴일 표기를 유지한다.
+        const h = document.createElement('div');
+        h.className = 'holiday-name';
+        h.textContent = holiday ? holiday.label : '';
+        cell.appendChild(h);
+
+        // 근무표에서는 조사/일반 일정 존재 여부만 이모지로 표시한다.
+        const dayItems = personalItemsForKey(key);
+        if (dayItems.length){
+          const hasInvestigation = dayItems.some(item=>item.kind==='investigation');
+          const hasGeneral = dayItems.some(item=>item.kind!=='investigation');
+          const flags = document.createElement('div');
+          flags.className = 'day-flags';
+          if (hasInvestigation){
+            const flag = document.createElement('span');
+            flag.className = 'day-flag';
+            flag.textContent = '📠';
+            flag.setAttribute('aria-label','조사 일정 있음');
+            flags.appendChild(flag);
+          }
+          if (hasGeneral){
+            const flag = document.createElement('span');
+            flag.className = 'day-flag';
+            flag.textContent = '📌';
+            flag.setAttribute('aria-label','일반 일정 있음');
+            flags.appendChild(flag);
+          }
+          cell.appendChild(flags);
+        }
+
+        cell.addEventListener('click',()=>{
+          if (Date.now() < suppressTapUntil) return;
+          showDutyPopupForDate(y,m,d);
+        });
       }
 
-      // [국소 재설립] 날짜 셀 탭은 자동 소멸 토스트가 아니라 근무정보 팝업을 연다.
-      // 다른 날짜를 누르면 같은 팝업의 내용이 즉시 교체되므로 기존 팝업은 쌓이지 않는다.
-      cell.addEventListener('click',()=>{
-        if (Date.now() < suppressTapUntil) return;
-        showDutyPopupForDate(y,m,d);
-      });
       grid.appendChild(cell);
     }
 
@@ -1481,10 +1414,7 @@
     monthTrack.appendChild(createMonthPage(viewYear,viewMonth));
     monthTrack.appendChild(createMonthPage(next.year,next.month));
     updateHeader();
-    renderAgenda();
-    if (currentView === 'work'){
-      requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
-    }
+    requestAnimationFrame(()=>setTrackY(-viewportHeight(),false));
   }
 
   function applyMonthDelta(delta){
@@ -1629,7 +1559,7 @@
     '.memo-btn',
     '.todaybtn',
     '.day',
-    '.agenda-item',
+    '.investigation-cell-item',
     '.duty-popup-close',
     '.personal-close',
     '.personal-mini-btn',
