@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0a0d11" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./icon-192.png" />
-<title>통수본</title>
-<meta name="tongsu-build" content="20261003-investigation-calendar-v11" />
+<title>통수팀</title>
+<meta name="tongsu-build" content="20261003-schedule-calendar-v12" />
 <style>
   :root{
     color-scheme:dark;
@@ -42,7 +42,6 @@
   button,
   select,
   .view-tab,
-  .memo-btn,
   .todaybtn,
   .day,
   .investigation-cell-item,
@@ -51,7 +50,6 @@
   .personal-mini-btn,
   .personal-kind-btn,
   .personal-save,
-  .personal-cancel,
   .detail-edit,
   .detail-close{
     touch-action:manipulation;
@@ -87,9 +85,6 @@
   }
   .top{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
   h1{font-size:23px;line-height:1.15;margin:0;font-weight:800;letter-spacing:-.04em}
-  .top-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
-  .memo-btn{height:42px;min-width:64px;padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);font-size:16px;font-weight:750;cursor:pointer}
-  .memo-btn:active{background:#202832}
   .team-wrap{position:relative;min-width:82px}
   select{width:100%;appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:14px;color:var(--text);font-size:16px;font-weight:750;padding:9px 30px 9px 12px;outline:none}
   .team-wrap:after{content:"▼";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:18px;font-weight:700;line-height:1}
@@ -165,8 +160,8 @@
   .day-flags{position:absolute;left:2px;right:2px;bottom:3px;display:flex;align-items:center;justify-content:center;gap:2px;pointer-events:none}
   .day-flag{font-size:10.5px;line-height:1;filter:saturate(.86);opacity:.92}
 
-  /* [국소 제거·재설립 v11] 조사일정은 별도 목록이 아니라 근무표와 동일한 월간 달력 폼을 사용한다.
-     근무 텍스트는 제거하고, 기존 근무 색계열을 셀 배경 틴트로만 남긴다. */
+  /* [국소 제거·재설립 v12] 일정 화면은 근무표와 동일한 월간 달력 폼을 사용한다.
+     근무 텍스트는 제거하고 기존 근무 색계열을 셀 배경 틴트로만 남기며, 조사·일반 일정을 함께 보여준다. */
   .calendar.investigation-mode .day{grid-template-rows:24px minmax(0,1fr);padding:3px 3px 3px}
   .calendar.investigation-mode .day.shift-bg-primary{background:rgba(255,159,67,.145)}
   .calendar.investigation-mode .day.shift-bg-secondary{background:rgba(200,119,55,.115)}
@@ -198,8 +193,16 @@
   .duty-popup{position:fixed;left:50%;top:27dvh;width:min(88vw,390px);padding:16px;border-radius:19px;background:rgba(18,23,29,.985);border:1px solid rgba(255,255,255,.16);box-shadow:0 20px 58px rgba(0,0,0,.56),0 0 0 1px rgba(255,255,255,.025) inset;color:#f6f8fa;opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,-8px) scale(.975);transition:opacity .15s ease,transform .18s cubic-bezier(.2,.75,.25,1),visibility 0s linear .18s;z-index:1120;text-align:left;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
   .duty-popup.show{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,0) scale(1);transition-delay:0s}
   .duty-popup-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:2px}
+  .duty-popup-head-main{min-width:0;flex:1 1 auto}
+  .duty-popup-date-line{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
   .duty-popup-date{font-size:17px;font-weight:900;letter-spacing:-.04em;line-height:1.3}
-  .duty-popup-holiday{margin-top:4px;color:#ff7f89;font-size:12px;font-weight:800;line-height:1.3}
+  .duty-popup-myshift{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;border:1px solid #3a4652;border-radius:999px;background:#161d24;color:#dfe5eb;font-size:11.5px;font-weight:900;line-height:1;white-space:nowrap}
+  .duty-popup-myshift.primary{color:#ffad5a;border-color:rgba(255,159,67,.34);background:rgba(255,159,67,.10)}
+  .duty-popup-myshift.secondary{color:#d98a4c;border-color:rgba(217,138,76,.28);background:rgba(217,138,76,.08)}
+  .duty-popup-myshift.rest{color:#ff7c96;border-color:rgba(255,94,126,.26);background:rgba(255,94,126,.08)}
+  .duty-popup-myshift.work{color:#79baff;border-color:rgba(85,170,255,.26);background:rgba(85,170,255,.08)}
+  .duty-popup-myshift.off{color:#dc858c;border-color:rgba(213,106,114,.24);background:rgba(213,106,114,.075)}
+  .duty-popup-holiday{margin-top:5px;color:#ff7f89;font-size:12px;font-weight:800;line-height:1.3}
   .duty-popup-close{flex:0 0 auto;width:32px;height:32px;margin-top:-3px;margin-right:-3px;border:1px solid #333d48;border-radius:50%;background:#1a2129;color:#e7ebef;font-size:19px;font-weight:700;line-height:1;cursor:pointer}
   .duty-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
   .duty-popup-card{display:flex;flex-direction:column;gap:4px;min-width:0;padding:12px 13px;border-radius:14px;border:1px solid transparent}
@@ -209,22 +212,37 @@
   .duty-popup-card.primary .duty-popup-label{color:#ffad5a}
   .duty-popup-card.secondary .duty-popup-label{color:#d98a4c}
   .duty-popup-team{font-size:21px;font-weight:950;letter-spacing:-.045em;line-height:1.1;color:#f5f7f9}
+  .duty-popup-schedule{margin-top:12px;padding:10px;border:1px solid #2b3641;border-radius:14px;background:#0e141a}
+  .duty-popup-schedule-title{margin-bottom:7px;color:#aeb9c4;font-size:11.5px;font-weight:900;letter-spacing:-.02em}
+  .duty-popup-schedule-list{display:flex;flex-direction:column;gap:6px;max-height:142px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .duty-popup-schedule-empty{padding:8px 6px;color:#707c88;font-size:11.5px;font-weight:700;text-align:center}
+  .duty-popup-item{width:100%;border:1px solid #2f3a45;border-radius:10px;background:#171e25;color:#e9edf1;padding:8px 9px;text-align:left;cursor:pointer}
+  .duty-popup-item:active{background:#202832}
+  .duty-popup-item-main{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px;font-weight:850;line-height:1.3}
+  .duty-popup-item-time{flex:0 0 auto;color:#a9b5c0;font-variant-numeric:tabular-nums}
+  .duty-popup-item-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .duty-popup-item-sub{margin-top:3px;color:#8996a2;font-size:10.5px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .duty-popup-actions{display:flex;justify-content:flex-end;margin-top:11px}
-  .duty-popup-add{min-height:38px;padding:0 14px;border:1px solid #3b4652;border-radius:11px;background:#1a2129;color:#e9edf1;font-size:13.5px;font-weight:850;letter-spacing:-.025em;cursor:pointer}
-  .duty-popup-add:active{background:#222b34}
+  .duty-popup-add{min-height:40px;padding:0 15px;border:1px solid #506071;border-radius:11px;background:#202a34;color:#f2f5f7;font-size:13.5px;font-weight:900;letter-spacing:-.025em;cursor:pointer}
+  .duty-popup-add:active{background:#283440}
   @media (max-height:700px){.duty-popup{top:23dvh}}
 
   /* [재설립] 달력 바깥 메모 버튼에서 여는 개인 일정 편집 오버레이 */
   .personal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:0}
   .personal-overlay.open{display:flex}
   .personal-sheet{width:min(100%,720px);max-height:min(82dvh,760px);background:#11161c;border:1px solid #2b3540;border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -18px 55px rgba(0,0,0,.48);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
-  .personal-head{flex:0 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:15px 16px 12px;border-bottom:1px solid var(--line)}
-  .personal-head-text{min-width:0}
+  .personal-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);background:#11161c}
+  .personal-head-text{min-width:0;flex:1 1 auto}
+  .personal-head-actions{flex:0 0 auto;display:flex;align-items:center;gap:7px}
+  .personal-head-save{min-width:58px;height:34px;padding:0 13px;border:1px solid #49657d;border-radius:10px;background:#1c3447;color:#e8f4ff;font-size:13px;font-weight:900;cursor:pointer}
+  .personal-head-save:active{background:#23445d}
   .personal-date-title{margin:0;font-size:19px;font-weight:850;letter-spacing:-.035em;line-height:1.25}
   .personal-duty-info{margin-top:4px;color:var(--muted);font-size:11.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .personal-close{flex:0 0 auto;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:var(--panel2);color:var(--text);font-size:18px;font-weight:700;line-height:1;cursor:pointer}
   .personal-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:13px 14px 18px}
-  .personal-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .personal-existing{margin-bottom:12px;padding:10px;border:1px solid #2b3641;border-radius:14px;background:#0e141a}
+  .personal-section-title{margin:0 0 8px;color:#aeb9c4;font-size:12px;font-weight:900;letter-spacing:-.02em}
+  .personal-list{display:flex;flex-direction:column;gap:8px}
   .personal-list-empty{padding:12px 10px;border:1px dashed #2e3945;border-radius:12px;color:#74808d;font-size:12.5px;text-align:center}
   .personal-card{border:1px solid #2a333d;border-radius:13px;background:#151b22;padding:10px 10px 9px}
   .personal-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
@@ -239,8 +257,10 @@
   .personal-date-label{color:#aab4bf;font-size:13px;font-weight:800}
   .personal-date-input{width:100%;min-height:42px;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:16px;font-weight:700;outline:none;padding:9px 11px;color-scheme:dark}
   .personal-date-input:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
-  .personal-form{border-top:1px solid var(--line);padding-top:13px}
-  .personal-form-title{font-size:13px;font-weight:800;margin-bottom:8px;color:#dbe1e7}
+  .personal-form{padding:11px;border:1px solid #35414d;border-radius:14px;background:#151b22}
+  .personal-form-title{font-size:13px;font-weight:900;margin-bottom:9px;color:#eef2f5}
+  .personal-time-row{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:8px}
+  .personal-time-label{color:#aeb8c2;font-size:13px;font-weight:900}
   .personal-kind{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
   .personal-kind-btn{border:1px solid #303a45;border-radius:10px;background:#0e1318;color:#8995a1;font-size:13px;font-weight:850;padding:9px 8px;cursor:pointer}
   .personal-kind-btn.active{background:#232c35;color:#f2f5f7;border-color:#465565}
@@ -250,10 +270,6 @@
   .personal-field{width:100%;border:1px solid #303a45;border-radius:11px;background:#0e1318;color:var(--text);font:inherit;font-size:16px;outline:none;padding:10px 11px}
   .personal-field:focus{border-color:#607487;box-shadow:0 0 0 2px rgba(96,116,135,.18)}
   textarea.personal-field{min-height:76px;resize:vertical;line-height:1.45;margin-bottom:9px}
-  .personal-form-actions{display:flex;gap:8px}
-  .personal-save{flex:1 1 auto;border:1px solid #49657d;border-radius:11px;background:#1c3447;color:#e8f4ff;font-size:14px;font-weight:850;padding:10px 12px;cursor:pointer}
-  .personal-cancel{display:none;flex:0 0 auto;border:1px solid #343e49;border-radius:11px;background:#171d24;color:#b5bec8;font-size:13px;font-weight:750;padding:10px 12px;cursor:pointer}
-  .personal-cancel.show{display:block}
 
   .detail-overlay{position:fixed;inset:0;z-index:1250;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
   .detail-overlay.open{display:flex}
@@ -291,23 +307,20 @@
 <body>
 <main class="app">
   <div class="top">
-    <h1>통수본</h1>
-    <div class="top-actions">
-      <button type="button" class="memo-btn" id="memoBtn">일정</button>
-      <div class="team-wrap">
+    <h1>통수팀</h1>
+    <div class="team-wrap">
         <select id="teamSelect" aria-label="팀 선택">
           <option value="1">1팀</option><option value="2">2팀</option><option value="3">3팀</option><option value="4">4팀</option>
           <option value="5">5팀</option><option value="6">6팀</option><option value="7">7팀</option><option value="8">8팀</option>
           <option value="9">9팀</option><option value="10">10팀</option><option value="11">11팀</option><option value="12">12팀</option>
         </select>
       </div>
-    </div>
   </div>
 
   <div class="monthbar">
     <div class="view-switch" role="tablist" aria-label="보기 전환">
       <button type="button" class="view-tab active" id="workTab" role="tab" aria-selected="true">근무표</button>
-      <button type="button" class="view-tab" id="investigationTab" role="tab" aria-selected="false">조사일정</button>
+      <button type="button" class="view-tab" id="investigationTab" role="tab" aria-selected="false">일정</button>
     </div>
     <div class="monthcenter">
       <div class="monthtitle" id="monthTitle"></div>
@@ -332,8 +345,11 @@
 
 <div class="duty-popup" id="dutyPopup" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="dutyPopupDate">
   <div class="duty-popup-head">
-    <div>
-      <div class="duty-popup-date" id="dutyPopupDate"></div>
+    <div class="duty-popup-head-main">
+      <div class="duty-popup-date-line">
+        <div class="duty-popup-date" id="dutyPopupDate"></div>
+        <span class="duty-popup-myshift" id="dutyPopupMyShift"></span>
+      </div>
       <div class="duty-popup-holiday" id="dutyPopupHoliday"></div>
     </div>
     <button type="button" class="duty-popup-close" id="dutyPopupClose" aria-label="근무정보 닫기">×</button>
@@ -348,6 +364,10 @@
       <strong class="duty-popup-team" id="dutyPopupSecondary">-</strong>
     </div>
   </div>
+  <div class="duty-popup-schedule">
+    <div class="duty-popup-schedule-title">등록된 일정</div>
+    <div class="duty-popup-schedule-list" id="dutyPopupScheduleList"></div>
+  </div>
   <div class="duty-popup-actions">
     <button type="button" class="duty-popup-add" id="dutyPopupAddMemo">+ 일정 추가</button>
   </div>
@@ -361,21 +381,28 @@
         <h2 class="personal-date-title" id="personalDateTitle"></h2>
         <div class="personal-duty-info" id="personalDutyInfo"></div>
       </div>
-      <button type="button" class="personal-close" id="personalClose" aria-label="닫기">×</button>
+      <div class="personal-head-actions">
+        <button type="button" class="personal-head-save" id="personalSave">저장</button>
+        <button type="button" class="personal-close" id="personalClose" aria-label="닫기">×</button>
+      </div>
     </div>
     <div class="personal-body">
       <div class="personal-date-control">
         <label class="personal-date-label" for="personalDateInput">날짜</label>
         <input class="personal-date-input" id="personalDateInput" type="date" aria-label="일정 날짜" />
       </div>
-      <div class="personal-list" id="personalList"></div>
+      <section class="personal-existing" aria-label="등록된 일정">
+        <div class="personal-section-title">등록된 일정</div>
+        <div class="personal-list" id="personalList"></div>
+      </section>
       <div class="personal-form">
         <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
         <div class="personal-kind" role="group" aria-label="일정 구분">
           <button type="button" class="personal-kind-btn active" id="kindMemo">📌 일반</button>
           <button type="button" class="personal-kind-btn" id="kindInvestigation">📠 조사</button>
         </div>
-        <div class="field-group">
+        <div class="personal-time-row">
+          <label class="personal-time-label" for="personalTime">시간</label>
           <input class="personal-field" id="personalTime" type="time" aria-label="일정 시간" />
         </div>
         <div class="field-group" id="memoFields">
@@ -386,10 +413,6 @@
           <input class="personal-field" id="personalSubject" type="text" maxlength="120" placeholder="조사 내용 (선택)" aria-label="조사 내용" />
         </div>
         <textarea class="personal-field" id="personalMemo" maxlength="1000" placeholder="메모 (선택)" aria-label="메모"></textarea>
-        <div class="personal-form-actions">
-          <button type="button" class="personal-save" id="personalSave">저장</button>
-          <button type="button" class="personal-cancel" id="personalCancel">수정 취소</button>
-        </div>
       </div>
     </div>
   </section>
@@ -420,7 +443,6 @@
   'use strict';
 
   const teamSelect = document.getElementById('teamSelect');
-  const memoBtn = document.getElementById('memoBtn');
   const calendar = document.getElementById('calendar');
   const monthViewport = document.getElementById('monthViewport');
   const monthTrack = document.getElementById('monthTrack');
@@ -430,6 +452,8 @@
   const dutyPopup = document.getElementById('dutyPopup');
   const dutyPopupDate = document.getElementById('dutyPopupDate');
   const dutyPopupHoliday = document.getElementById('dutyPopupHoliday');
+  const dutyPopupMyShift = document.getElementById('dutyPopupMyShift');
+  const dutyPopupScheduleList = document.getElementById('dutyPopupScheduleList');
   const dutyPopupPrimary = document.getElementById('dutyPopupPrimary');
   const dutyPopupSecondary = document.getElementById('dutyPopupSecondary');
   const dutyPopupClose = document.getElementById('dutyPopupClose');
@@ -456,7 +480,6 @@
   const personalSubject = document.getElementById('personalSubject');
   const personalMemo = document.getElementById('personalMemo');
   const personalSave = document.getElementById('personalSave');
-  const personalCancel = document.getElementById('personalCancel');
 
   const detailOverlay = document.getElementById('detailOverlay');
   const detailTitle = document.getElementById('detailTitle');
@@ -768,19 +791,77 @@
     dutyPopupDateKey = null;
   }
 
+  function renderDutyPopupSchedule(key){
+    dutyPopupScheduleList.innerHTML = '';
+    const items = personalItemsForKey(key);
+    if (!items.length){
+      const empty = document.createElement('div');
+      empty.className = 'duty-popup-schedule-empty';
+      empty.textContent = '등록된 일정 없음';
+      dutyPopupScheduleList.appendChild(empty);
+      return;
+    }
+
+    for (const item of items){
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'duty-popup-item';
+
+      const main = document.createElement('div');
+      main.className = 'duty-popup-item-main';
+      const icon = document.createElement('span');
+      icon.textContent = item.kind === 'investigation' ? '📠' : '📌';
+      main.appendChild(icon);
+
+      if (item.time){
+        const time = document.createElement('span');
+        time.className = 'duty-popup-item-time';
+        time.textContent = item.time;
+        main.appendChild(time);
+      }
+
+      const text = document.createElement('span');
+      text.className = 'duty-popup-item-text';
+      text.textContent = personalDisplayText(item);
+      main.appendChild(text);
+      button.appendChild(main);
+
+      const subValue = item.kind === 'investigation'
+        ? [item.subject,item.memo].filter(Boolean).join(' · ')
+        : item.memo;
+      if (subValue && subValue.trim()){
+        const sub = document.createElement('div');
+        sub.className = 'duty-popup-item-sub';
+        sub.textContent = subValue.trim();
+        button.appendChild(sub);
+      }
+
+      button.addEventListener('click',e=>{
+        e.stopPropagation();
+        closeDutyPopup();
+        openDetail(key,item.id);
+      });
+      dutyPopupScheduleList.appendChild(button);
+    }
+  }
+
   function showDutyPopupForDate(y,m,d){
     const key = keyOf(y,m,d);
     dutyPopupDateKey = key;
     const holiday = holidayForKey(key);
     const roles = dutyRolesForDate(y,m,d);
     const weekday = ['일','월','화','수','목','금','토'][new Date(y,m,d).getDay()];
+    const ownShift = selectedTeamShiftLabel(y,m,d);
 
-    // 이미 다른 날짜 팝업이 열려 있어도 새 내용을 같은 팝업에 즉시 재설립한다.
+    // 근무표/일정 화면 어디에서 누르든 같은 날짜 팝업을 사용한다.
     dutyPopupDate.textContent = `${m+1}월 ${d}일 ${weekday}요일`;
+    dutyPopupMyShift.textContent = `내 근무 · ${selectedTeamShiftDisplay(ownShift)}`;
+    dutyPopupMyShift.className = `duty-popup-myshift ${selectedTeamShiftToneClass(ownShift)}`.trim();
     dutyPopupHoliday.textContent = holiday ? holiday.name : '';
     dutyPopupHoliday.style.display = holiday ? '' : 'none';
     dutyPopupPrimary.textContent = roles.primary ? `${roles.primary}팀` : '-';
     dutyPopupSecondary.textContent = roles.secondary ? `${roles.secondary}팀` : '-';
+    renderDutyPopupSchedule(key);
     dutyPopup.classList.add('show');
     dutyPopup.setAttribute('aria-hidden','false');
   }
@@ -789,7 +870,7 @@
      [국소 제거 및 재설립] 공통 일정 저장소
      - 일반/조사를 같은 저장소에서 kind로만 구분
      - 기존 v1 메모 데이터는 자동으로 📌 일반 일정으로 승격
-     - 근무표와 조사일정은 같은 일정 데이터를 서로 다른 방식으로 보여줌
+     - 근무표와 일정 화면은 같은 일정 데이터를 서로 다른 방식으로 보여줌
      ========================================================= */
   const PERSONAL_STORAGE_KEY = 'tongsu_personal_schedule_v1';
   let currentView = 'work';
@@ -893,6 +974,22 @@
     return '당직';
   }
 
+  function selectedTeamShiftDisplay(label){
+    if (label === '휴') return '휴무';
+    if (label === '일') return '일근';
+    if (label === '비') return '비번';
+    return label || '-';
+  }
+
+  function selectedTeamShiftToneClass(label){
+    if (label === '주당직') return 'primary';
+    if (label === '부당직') return 'secondary';
+    if (label === '휴') return 'rest';
+    if (label === '일') return 'work';
+    if (label === '비') return 'off';
+    return '';
+  }
+
   function shiftChipClass(label){
     if (label === '주당직') return 'duty-primary';
     if (label === '부당직') return 'duty-secondary';
@@ -917,7 +1014,7 @@
     calendar.classList.remove('is-hidden');
     calendar.classList.toggle('investigation-mode',!work);
     legend.classList.remove('is-hidden');
-    calendar.setAttribute('aria-label',work ? '근무 달력' : '조사 일정 달력');
+    calendar.setAttribute('aria-label',work ? '근무 달력' : '일정 달력');
 
     workTab.classList.toggle('active',work);
     investigationTab.classList.toggle('active',!work);
@@ -939,15 +1036,19 @@
     personalMemo.placeholder = '메모 (선택)';
   }
 
+  function currentTimeValue(){
+    const d = new Date();
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
   function resetPersonalForm(){
     editingPersonalId = null;
-    personalTime.value = '';
+    personalTime.value = currentTimeValue();
     personalTitle.value = '';
     personalPerson.value = '';
     personalSubject.value = '';
     personalMemo.value = '';
     personalSave.textContent = '저장';
-    personalCancel.classList.remove('show');
     setPersonalKind('general');
   }
 
@@ -1030,7 +1131,7 @@
     personalDateTitle.textContent = `${y}년 ${m}월 ${d}일 (${weekdayKo(date)})`;
     const holiday = holidayForKey(activePersonalDateKey);
     const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
-    const info = [`${selectedTeam}팀 · ${shiftLabel}`];
+    const info = [`${selectedTeam}팀 · ${selectedTeamShiftDisplay(shiftLabel)}`];
     if (holiday) info.push(holiday.name);
     personalDutyInfo.textContent = info.join(' · ');
     renderPersonalList();
@@ -1073,10 +1174,7 @@
     personalSubject.value = item.subject || '';
     personalMemo.value = item.memo || '';
     setPersonalKind(item.kind);
-    personalSave.textContent = '수정 저장';
-    personalCancel.classList.add('show');
-    const target = item.kind === 'investigation' ? personalPerson : personalTitle;
-    target.focus({preventScroll:false});
+    personalSave.textContent = '저장';
   }
 
   function deletePersonalItem(id){
@@ -1167,7 +1265,7 @@
     detailTitle.textContent = `${m}월 ${d}일 (${weekdayKo(date)})`;
     const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
     const holiday = holidayForKey(key);
-    detailShift.textContent = `${selectedTeam}팀 · ${shiftLabel}${holiday ? ` · ${holiday.name}` : ''}`;
+    detailShift.textContent = `${selectedTeam}팀 · ${selectedTeamShiftDisplay(shiftLabel)}${holiday ? ` · ${holiday.name}` : ''}`;
     detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '📌 일반';
     detailGrid.innerHTML = '';
     if (item.kind === 'investigation'){
@@ -1191,7 +1289,6 @@
     detailItemId = null;
   }
 
-  memoBtn.addEventListener('click',()=>openPersonalEditor());
   kindMemo.addEventListener('click',()=>setPersonalKind('general'));
   kindInvestigation.addEventListener('click',()=>setPersonalKind('investigation'));
 
@@ -1208,7 +1305,6 @@
     if (e.target===personalOverlay) closePersonalEditor();
   });
   personalSave.addEventListener('click',savePersonalItem);
-  personalCancel.addEventListener('click',resetPersonalForm);
 
   detailClose.addEventListener('click',closeDetail);
   detailX.addEventListener('click',closeDetail);
@@ -1241,7 +1337,7 @@
     else if (dutyPopup.classList.contains('show')) closeDutyPopup();
   });
 
-  // v11: 조사일정도 근무표와 동일한 달력 제스처(상하 월 이동)를 사용한다.
+  // v12: 일정 화면도 근무표와 동일한 달력 제스처(상하 월 이동)를 사용한다.
 
   let suppressTapUntil = 0;
 
@@ -1251,7 +1347,7 @@
     page.dataset.year = String(pageYear);
     page.dataset.month = String(pageMonth);
 
-    const investigationMode = currentView === 'investigation';
+    const investigationMode = currentView === 'investigation'; // 내부 키는 호환을 위해 유지, UI 명칭은 '일정'
     const grid = document.createElement('div');
     grid.className = 'grid';
     const first = new Date(pageYear,pageMonth,1);
@@ -1289,18 +1385,18 @@
       cell.appendChild(numRow);
 
       if (investigationMode){
-        // [재설립] 조사일정 화면: 근무 텍스트/공휴일명/이모지는 제거하고
-        // 날짜 + 조사 약속의 시간/대상자만 직접 보여준다.
-        const investigations = personalItemsForKey(key).filter(item=>item.kind==='investigation');
+        // [재설립] 일정 화면: 근무 텍스트는 제거하고 배경색만 유지한다.
+        // 조사와 일반 일정을 모두 시간 + 핵심 내용으로 직접 보여준다.
+        const scheduleItems = personalItemsForKey(key);
         const list = document.createElement('div');
         list.className = 'investigation-cell-list';
 
-        const visible = investigations.slice(0,2);
+        const visible = scheduleItems.slice(0,2);
         for (const item of visible){
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'investigation-cell-item';
-          button.setAttribute('aria-label',`${item.time || ''} ${item.person || item.subject || item.memo || '조사'}`.trim());
+          button.setAttribute('aria-label',`${item.time || ''} ${personalDisplayText(item)}`.trim());
 
           if (item.time){
             const time = document.createElement('span');
@@ -1309,13 +1405,10 @@
             button.appendChild(time);
           }
 
-          const personText = String(item.person || item.subject || item.memo || '조사').trim();
-          if (personText){
-            const person = document.createElement('span');
-            person.className = 'investigation-cell-person';
-            person.textContent = personText;
-            button.appendChild(person);
-          }
+          const person = document.createElement('span');
+          person.className = 'investigation-cell-person';
+          person.textContent = `${item.kind === 'investigation' ? '📠' : '📌'} ${personalDisplayText(item)}`;
+          button.appendChild(person);
 
           button.addEventListener('click',e=>{
             e.stopPropagation();
@@ -1325,15 +1418,14 @@
           list.appendChild(button);
         }
 
-        if (investigations.length > visible.length){
+        if (scheduleItems.length > visible.length){
           const more = document.createElement('div');
           more.className = 'investigation-cell-more';
-          more.textContent = `+${investigations.length-visible.length}`;
+          more.textContent = `+${scheduleItems.length-visible.length}`;
           list.appendChild(more);
         }
 
         cell.appendChild(list);
-        // 빈 공간 탭은 오동작을 만들지 않는다. 상세는 조사 항목 자체를 눌렀을 때만 연다.
       }else{
         const wrap = document.createElement('div');
         wrap.className = 'shift';
@@ -1375,11 +1467,13 @@
           cell.appendChild(flags);
         }
 
-        cell.addEventListener('click',()=>{
-          if (Date.now() < suppressTapUntil) return;
-          showDutyPopupForDate(y,m,d);
-        });
       }
+
+      // 날짜의 빈 영역을 누르면 근무표/일정 화면 모두 같은 날짜 팝업을 연다.
+      cell.addEventListener('click',()=>{
+        if (Date.now() < suppressTapUntil) return;
+        showDutyPopupForDate(y,m,d);
+      });
 
       grid.appendChild(cell);
     }
