@@ -427,7 +427,7 @@
         <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
         <div class="personal-kind" role="group" aria-label="일정 구분">
           <button type="button" class="personal-kind-btn active" id="kindMemo">✅ 일반</button>
-          <button type="button" class="personal-kind-btn" id="kindInvestigation">✨ 조사</button>
+          <button type="button" class="personal-kind-btn" id="kindInvestigation">⚠️ 조사</button>
         </div>
         <div class="personal-time-row">
           <label class="personal-time-label" for="personalTime">시간</label>
@@ -838,7 +838,7 @@
       const main = document.createElement('div');
       main.className = 'duty-popup-item-main';
       const icon = document.createElement('span');
-      icon.textContent = item.kind === 'investigation' ? '✨' : '✅';
+      icon.textContent = item.kind === 'investigation' ? '⚠️' : '✅';
       main.appendChild(icon);
 
       if (item.time){
@@ -1106,7 +1106,7 @@
       title.className = 'personal-card-title';
 
       const emoji = document.createElement('span');
-      emoji.textContent = item.kind === 'investigation' ? '✨' : '✅';
+      emoji.textContent = item.kind === 'investigation' ? '⚠️' : '✅';
       emoji.style.marginRight = '6px';
       title.appendChild(emoji);
 
@@ -1294,7 +1294,7 @@
     const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
     const holiday = holidayForKey(key);
     detailShift.textContent = `${selectedTeam}팀 · ${selectedTeamShiftDisplay(shiftLabel)}${holiday ? ` · ${holiday.name}` : ''}`;
-    detailKind.textContent = item.kind === 'investigation' ? '✨ 조사' : '✅ 일반';
+    detailKind.textContent = item.kind === 'investigation' ? '⚠️ 조사' : '✅ 일반';
     detailGrid.innerHTML = '';
     if (item.kind === 'investigation'){
       addDetailRow('시간',item.time || '');
@@ -1435,7 +1435,7 @@
 
           const person = document.createElement('span');
           person.className = 'investigation-cell-person';
-          person.textContent = `${item.kind === 'investigation' ? '✨' : '✅'} ${personalDisplayText(item)}`;
+          person.textContent = `${item.kind === 'investigation' ? '⚠️' : '✅'} ${personalDisplayText(item)}`;
           button.appendChild(person);
 
           button.addEventListener('click',e=>{
@@ -1481,7 +1481,7 @@
           if (hasInvestigation){
             const flag = document.createElement('span');
             flag.className = 'day-flag';
-            flag.textContent = '✨';
+            flag.textContent = '⚠️';
             flag.setAttribute('aria-label','조사 일정 있음');
             flags.appendChild(flag);
           }
