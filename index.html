@@ -426,7 +426,7 @@
       <div class="personal-form">
         <div class="personal-form-title" id="personalFormTitle">일정 추가</div>
         <div class="personal-kind" role="group" aria-label="일정 구분">
-          <button type="button" class="personal-kind-btn active" id="kindMemo">📌 일반</button>
+          <button type="button" class="personal-kind-btn active" id="kindMemo">✅ 일반</button>
           <button type="button" class="personal-kind-btn" id="kindInvestigation">📠 조사</button>
         </div>
         <div class="personal-time-row">
@@ -838,7 +838,7 @@
       const main = document.createElement('div');
       main.className = 'duty-popup-item-main';
       const icon = document.createElement('span');
-      icon.textContent = item.kind === 'investigation' ? '📠' : '📌';
+      icon.textContent = item.kind === 'investigation' ? '📠' : '✅';
       main.appendChild(icon);
 
       if (item.time){
@@ -897,7 +897,7 @@
   /* =========================================================
      [국소 제거 및 재설립] 공통 일정 저장소
      - 일반/조사를 같은 저장소에서 kind로만 구분
-     - 기존 v1 메모 데이터는 자동으로 📌 일반 일정으로 승격
+     - 기존 v1 메모 데이터는 자동으로 ✅ 일반 일정으로 승격
      - 근무표와 일정 화면은 같은 일정 데이터를 서로 다른 방식으로 보여줌
      ========================================================= */
   const PERSONAL_STORAGE_KEY = 'tongsu_personal_schedule_v1';
@@ -1106,7 +1106,7 @@
       title.className = 'personal-card-title';
 
       const emoji = document.createElement('span');
-      emoji.textContent = item.kind === 'investigation' ? '📠' : '📌';
+      emoji.textContent = item.kind === 'investigation' ? '📠' : '✅';
       emoji.style.marginRight = '6px';
       title.appendChild(emoji);
 
@@ -1294,7 +1294,7 @@
     const shiftLabel = selectedTeamShiftLabel(y,m-1,d);
     const holiday = holidayForKey(key);
     detailShift.textContent = `${selectedTeam}팀 · ${selectedTeamShiftDisplay(shiftLabel)}${holiday ? ` · ${holiday.name}` : ''}`;
-    detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '📌 일반';
+    detailKind.textContent = item.kind === 'investigation' ? '📠 조사' : '✅ 일반';
     detailGrid.innerHTML = '';
     if (item.kind === 'investigation'){
       addDetailRow('시간',item.time || '');
@@ -1435,7 +1435,7 @@
 
           const person = document.createElement('span');
           person.className = 'investigation-cell-person';
-          person.textContent = `${item.kind === 'investigation' ? '📠' : '📌'} ${personalDisplayText(item)}`;
+          person.textContent = `${item.kind === 'investigation' ? '📠' : '✅'} ${personalDisplayText(item)}`;
           button.appendChild(person);
 
           button.addEventListener('click',e=>{
@@ -1488,7 +1488,7 @@
           if (hasGeneral){
             const flag = document.createElement('span');
             flag.className = 'day-flag';
-            flag.textContent = '📌';
+            flag.textContent = '✅';
             flag.setAttribute('aria-label','일반 일정 있음');
             flags.appendChild(flag);
           }
